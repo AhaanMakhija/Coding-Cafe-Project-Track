@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+  <article>
+    <h2>{{ user.name }}</h2>
+    <p>{{ user.email }} · <mark>{{ user.role | capitalize }}</mark></p>
+
+    <h3>My courses</h3>
+    {% if user.courses %}
+      <ul>
+        {% for course in user.courses %}
+          <li><strong>{{ course.code }}</strong> {{ course.name }} ({{ course.term }})</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>You haven't joined any courses yet.</p>
+    {% endif %}
+  </article>
+{% endblock %}

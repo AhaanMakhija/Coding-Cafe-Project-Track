@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+  <hgroup>
+    <h1>ORBIT</h1>
+    <p>Organized Resources, Boards, Info &amp; Timetable</p>
+  </hgroup>
+  <p>Course files, discussions and your calendar in one place.</p>
+
+  {% if current_user.is_authenticated %}
+    <p>Signed in as <strong>{{ current_user.name }}</strong>.
+       <a href="{{ url_for('auth.profile') }}">Go to your profile</a>.</p>
+  {% else %}
+    <p><a href="{{ url_for('auth.signup') }}" role="button">Create an account</a>
+       <a href="{{ url_for('auth.login') }}" role="button" class="secondary">Log in</a></p>
+  {% endif %}
+{% endblock %}

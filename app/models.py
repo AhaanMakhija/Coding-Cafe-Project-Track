@@ -10,7 +10,7 @@ from flask_login import UserMixin
 from sqlalchemy.orm import validates
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app.extensions import db
+from app.extensions import db, login_manager
 
 ROLES = ("student", "staff")
 RESOURCE_KINDS = ("file", "link")
@@ -67,6 +67,12 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return f"<User {self.email} ({self.role})>"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Flask-Login stores only the user's id in the session cookie; this turns it back into a User."""
+    return db.session.get(User, int(user_id))
 
 
 class Course(db.Model):

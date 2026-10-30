@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% from "_form.html" import field %}
+{% block title %}Log in{% endblock %}
+
+{% block content %}
+  <article>
+    <h2>Log in</h2>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.email) }}
+      {{ field(form.password) }}
+      <label>{{ form.remember() }} {{ form.remember.label.text }}</label>
+      {{ form.submit() }}
+    </form>
+    <p>New here? <a href="{{ url_for('auth.signup') }}">Create an account</a></p>
+  </article>
+{% endblock %}

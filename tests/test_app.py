@@ -13,4 +13,4 @@ def test_upload_limit_is_10_mb(app):
 def test_home_page_loads(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert b"ORBIT is running." in response.data
+    assert b"Organized Resources, Boards, Info &amp; Timetable" in response.data

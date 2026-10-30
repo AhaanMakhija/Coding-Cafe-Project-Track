@@ -2,9 +2,9 @@
 
 import os
 
-from flask import Flask
+from flask import Flask, render_template
 
-from app.extensions import db
+from app.extensions import csrf, db, login_manager
 from config import Config
 
 
@@ -21,15 +21,20 @@ def create_app(config_class=Config):
     os.makedirs(app.instance_path, exist_ok=True)
 
     db.init_app(app)
+    login_manager.init_app(app)
+    csrf.init_app(app)
 
     with app.app_context():
         from app import models  # noqa: F401  (registers the tables with db)
 
         db.create_all()
 
-    # Temporary page to prove the app runs; replaced by Blueprints in Week 2.
+    from app.auth import bp as auth_bp
+
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+
     @app.route("/")
     def index():
-        return "ORBIT is running."
+        return render_template("index.html")
 
     return app

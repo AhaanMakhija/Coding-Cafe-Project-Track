@@ -1,0 +1,12 @@
+{# Renders one WTForms field with its label and any validation errors. #}
+{% macro field(f) %}
+  <label for="{{ f.id }}">
+    {{ f.label.text }}
+    {% if f.errors %}
+      {{ f(aria_invalid="true", aria_describedby=f.id ~ "-error") }}
+      <small id="{{ f.id }}-error">{{ f.errors | join(" ") }}</small>
+    {% else %}
+      {{ f() }}
+    {% endif %}
+  </label>
+{% endmacro %}

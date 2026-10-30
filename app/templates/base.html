@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ORBIT{% endblock %} · ORBIT</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
+  <style>
+    .flash-success { border-left: 4px solid #2e7d32; }
+    .flash-error   { border-left: 4px solid #c62828; }
+    .flash-warning { border-left: 4px solid #ef6c00; }
+    .flash-info    { border-left: 4px solid #1565c0; }
+    nav form { margin: 0; }
+    nav form button { padding: .4rem .9rem; margin: 0; }
+  </style>
+</head>
+<body>
+  <header class="container">
+    <nav>
+      <ul><li><a href="{{ url_for('index') }}"><strong>ORBIT</strong></a></li></ul>
+      <ul>
+        {% if current_user.is_authenticated %}
+          <li><a href="{{ url_for('auth.profile') }}">{{ current_user.name }}</a></li>
+          <li>
+            <form action="{{ url_for('auth.logout') }}" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="secondary outline">Log out</button>
+            </form>
+          </li>
+        {% else %}
+          <li><a href="{{ url_for('auth.login') }}">Log in</a></li>
+          <li><a href="{{ url_for('auth.signup') }}" role="button">Sign up</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% for category, message in get_flashed_messages(with_categories=true) %}
+      <article class="flash-{{ category }}">{{ message }}</article>
+    {% endfor %}
+
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
