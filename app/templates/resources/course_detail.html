@@ -20,5 +20,35 @@
   {% endif %}
 
   <h2>Resources</h2>
-  <p>No resources yet.</p>
+  {% if can_add %}
+    <p><a href="{{ url_for('resources.new_resource', course_id=course.id) }}" role="button">Add resource</a></p>
+  {% else %}
+    <p><small>Join this course to add resources.</small></p>
+  {% endif %}
+
+  {% if course.resources %}
+    <table>
+      <thead><tr><th>Title</th><th>Type</th><th>Tags</th><th>Added by</th><th></th></tr></thead>
+      <tbody>
+        {% for r in course.resources %}
+          <tr>
+            <td>
+              {% if r.kind == "file" %}
+                <a href="{{ url_for('resources.download_resource', course_id=course.id, resource_id=r.id) }}">{{ r.title }}</a>
+              {% else %}
+                {# rel="noopener noreferrer" stops the linked site from controlling this tab. #}
+                <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.title }} ↗</a>
+              {% endif %}
+            </td>
+            <td>{{ r.type | capitalize }}</td>
+            <td>{{ r.tag_list | join(", ") }}</td>
+            <td>{{ r.uploader.name }}</td>
+            <td>{% if r.is_official %}<mark>Official</mark>{% else %}<small>Unofficial</small>{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No resources yet.</p>
+  {% endif %}
 {% endblock %}

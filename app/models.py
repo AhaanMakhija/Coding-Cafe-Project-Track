@@ -21,6 +21,11 @@ def utc_now():
     """Current time in UTC, used as the default for created_at columns."""
     return datetime.now(timezone.utc)
 
+
+def split_tags(text):
+    """Clean comma-separated tags: "Midterm, week 3 ," -> ["midterm", "week 3"]."""
+    return [tag.strip().lower() for tag in (text or "").split(",") if tag.strip()]
+
 # Many-to-many link between users and courses. It has no fields of its own,
 # so it is a plain table rather than a model class.
 enrollment = db.Table(
@@ -84,7 +89,9 @@ class Course(db.Model):
     term = db.Column(db.String(30), nullable=False)
 
     students = db.relationship("User", secondary=enrollment, back_populates="courses")
-    resources = db.relationship("Resource", back_populates="course")
+    resources = db.relationship(
+        "Resource", back_populates="course", order_by="Resource.created_at.desc()"
+    )
     class_slots = db.relationship("ClassSlot", back_populates="course")
     threads = db.relationship(
         "Thread", back_populates="course", order_by="Thread.created_at.desc()"
@@ -139,7 +146,7 @@ class Resource(db.Model):
     @property
     def tag_list(self):
         """Tags as a clean list, e.g. "midterm, Week 3 ," -> ["midterm", "week 3"]."""
-        return [tag.strip().lower() for tag in self.tags.split(",") if tag.strip()]
+        return split_tags(self.tags)
 
     def __repr__(self):
         return f"<Resource {self.title!r} ({self.kind})>"

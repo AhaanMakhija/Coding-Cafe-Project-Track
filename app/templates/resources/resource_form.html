@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_form.html" import field %}
+{% block title %}Add resource · {{ course.code }}{% endblock %}
+
+{% block content %}
+  <article>
+    <h2>Add a resource to {{ course.code }}</h2>
+    {# multipart/form-data is required for the browser to send file contents. #}
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.title) }}
+
+      <fieldset>
+        <legend>{{ form.kind.label.text }}</legend>
+        {% for option in form.kind %}
+          <label>{{ option() }} {{ option.label.text }}</label>
+        {% endfor %}
+      </fieldset>
+
+      {{ field(form.file) }}
+      <small>{{ form.file.description }} Used when “File upload” is selected.</small>
+      {{ field(form.url) }}
+      <small>{{ form.url.description }} Used when “Link” is selected.</small>
+
+      {{ field(form.resource_type) }}
+      {{ field(form.tags) }}
+      <small>{{ form.tags.description }}</small>
+
+      {{ form.submit() }}
+    </form>
+    <p><a href="{{ url_for('resources.course_detail', course_id=course.id) }}">Back to {{ course.code }}</a></p>
+  </article>
+{% endblock %}

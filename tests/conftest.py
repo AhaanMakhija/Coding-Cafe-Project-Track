@@ -11,9 +11,13 @@ TEST_PASSWORD = "correct-horse"
 
 
 @pytest.fixture
-def app():
-    """A fresh app with empty tables; everything is wiped after the test."""
+def app(tmp_path):
+    """A fresh app with empty tables; everything is wiped after the test.
+
+    Uploads go to pytest's temporary folder, never the real uploads/ folder.
+    """
     app = create_app(TestConfig)
+    app.config["UPLOAD_FOLDER"] = str(tmp_path / "uploads")
     with app.app_context():
         yield app
         db.session.remove()

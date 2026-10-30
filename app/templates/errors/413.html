@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}File too large{% endblock %}
+
+{% block content %}
+  <article>
+    <h2>That file is too large</h2>
+    <p>Uploads can be at most {{ max_mb }} MB. Try compressing the file, or save it to
+       Google Drive or OneDrive and add it as a link instead.</p>
+    <p>Use your browser's back button to return to the form.</p>
+  </article>
+{% endblock %}

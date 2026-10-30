@@ -39,4 +39,10 @@ def create_app(config_class=Config):
     def index():
         return render_template("index.html")
 
+    @app.errorhandler(413)
+    def file_too_large(error):
+        """Flask raises 413 when a request is bigger than MAX_CONTENT_LENGTH."""
+        max_mb = app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)
+        return render_template("errors/413.html", max_mb=max_mb), 413
+
     return app
