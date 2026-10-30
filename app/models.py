@@ -4,6 +4,8 @@ Course is the hub: users enrol in courses, and (later) resources, class slots
 and forum threads all belong to a course.
 """
 
+from datetime import datetime, timezone
+
 from flask_login import UserMixin
 from sqlalchemy.orm import validates
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -11,6 +13,13 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from app.extensions import db
 
 ROLES = ("student", "staff")
+RESOURCE_KINDS = ("file", "link")
+RESOURCE_TYPES = ("notes", "slides", "past paper", "assignment", "other")
+
+
+def utc_now():
+    """Current time in UTC, used as the default for created_at columns."""
+    return datetime.now(timezone.utc)
 
 # Many-to-many link between users and courses. It has no fields of its own,
 # so it is a plain table rather than a model class.
@@ -31,6 +40,8 @@ class User(UserMixin, db.Model):
     role = db.Column(db.String(10), nullable=False, default="student")
 
     courses = db.relationship("Course", secondary=enrollment, back_populates="students")
+    resources = db.relationship("Resource", back_populates="uploader")
+    class_slots = db.relationship("ClassSlot", back_populates="user")
 
     @validates("role")
     def validate_role(self, key, value):
@@ -67,9 +78,108 @@ class Course(db.Model):
     term = db.Column(db.String(30), nullable=False)
 
     students = db.relationship("User", secondary=enrollment, back_populates="courses")
+    resources = db.relationship("Resource", back_populates="course")
+    class_slots = db.relationship("ClassSlot", back_populates="course")
 
     # The same code can run in different terms, but not twice in one term.
     __table_args__ = (db.UniqueConstraint("code", "term"),)
 
     def __repr__(self):
         return f"<Course {self.code} {self.term}>"
+
+
+class Resource(db.Model):
+    """A study resource in a course: either an uploaded file or a saved link."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    kind = db.Column(db.String(10), nullable=False)
+    file_path = db.Column(db.String(300))  # set when kind == "file"
+    url = db.Column(db.String(500))  # set when kind == "link"
+    type = db.Column(db.String(20), nullable=False, default="other")
+    tags = db.Column(db.String(200), nullable=False, default="")  # comma-separated
+    is_official = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=utc_now)
+
+    course_id = db.Column(db.Integer, db.ForeignKey("course.id"), nullable=False)
+    uploader_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    course = db.relationship("Course", back_populates="resources")
+    uploader = db.relationship("User", back_populates="resources")
+
+    # Enforced by the database itself: a file has a path and no URL, a link the opposite.
+    __table_args__ = (
+        db.CheckConstraint(
+            "(kind = 'file' AND file_path IS NOT NULL AND url IS NULL)"
+            " OR (kind = 'link' AND url IS NOT NULL AND file_path IS NULL)",
+            name="file_xor_link",
+        ),
+    )
+
+    @validates("kind")
+    def validate_kind(self, key, value):
+        if value not in RESOURCE_KINDS:
+            raise ValueError(f"kind must be one of {RESOURCE_KINDS}, got {value!r}")
+        return value
+
+    @validates("type")
+    def validate_type(self, key, value):
+        if value not in RESOURCE_TYPES:
+            raise ValueError(f"type must be one of {RESOURCE_TYPES}, got {value!r}")
+        return value
+
+    @property
+    def tag_list(self):
+        """Tags as a clean list, e.g. "midterm, Week 3 ," -> ["midterm", "week 3"]."""
+        return [tag.strip().lower() for tag in self.tags.split(",") if tag.strip()]
+
+    def __repr__(self):
+        return f"<Resource {self.title!r} ({self.kind})>"
+
+
+class Event(db.Model):
+    """A one-off campus event posted by staff, shown on everyone's calendar.
+
+    Named start_at/end_at because END is a reserved word in SQL; the calendar
+    API will send them to FullCalendar as "start" and "end".
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    start_at = db.Column(db.DateTime, nullable=False)
+    end_at = db.Column(db.DateTime, nullable=False)
+    location = db.Column(db.String(120), nullable=False, default="")
+    description = db.Column(db.Text, nullable=False, default="")
+
+    creator_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    creator = db.relationship("User")
+
+    __table_args__ = (db.CheckConstraint("end_at > start_at", name="event_ends_after_start"),)
+
+    def __repr__(self):
+        return f"<Event {self.title!r} {self.start_at:%Y-%m-%d %H:%M}>"
+
+
+class ClassSlot(db.Model):
+    """One weekly class in a user's own timetable, e.g. CS101 every Monday 10:00-11:30.
+
+    It stores the weekday and times only; FullCalendar repeats it every week.
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    weekday = db.Column(db.Integer, nullable=False)  # 0 = Monday ... 6 = Sunday
+    start_time = db.Column(db.Time, nullable=False)
+    end_time = db.Column(db.Time, nullable=False)
+    room = db.Column(db.String(50), nullable=False, default="")
+
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey("course.id"), nullable=False)
+    user = db.relationship("User", back_populates="class_slots")
+    course = db.relationship("Course", back_populates="class_slots")
+
+    __table_args__ = (
+        db.CheckConstraint("weekday BETWEEN 0 AND 6", name="valid_weekday"),
+        db.CheckConstraint("end_time > start_time", name="slot_ends_after_start"),
+    )
+
+    def __repr__(self):
+        return f"<ClassSlot day={self.weekday} {self.start_time}-{self.end_time}>"
