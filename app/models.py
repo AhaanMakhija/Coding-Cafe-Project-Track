@@ -80,6 +80,9 @@ class Course(db.Model):
     students = db.relationship("User", secondary=enrollment, back_populates="courses")
     resources = db.relationship("Resource", back_populates="course")
     class_slots = db.relationship("ClassSlot", back_populates="course")
+    threads = db.relationship(
+        "Thread", back_populates="course", order_by="Thread.created_at.desc()"
+    )
 
     # The same code can run in different terms, but not twice in one term.
     __table_args__ = (db.UniqueConstraint("code", "term"),)
@@ -183,3 +186,52 @@ class ClassSlot(db.Model):
 
     def __repr__(self):
         return f"<ClassSlot day={self.weekday} {self.start_time}-{self.end_time}>"
+
+
+class Thread(db.Model):
+    """A discussion topic on a course's board; replies are Posts."""
+
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=utc_now)
+
+    course_id = db.Column(db.Integer, db.ForeignKey("course.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    course = db.relationship("Course", back_populates="threads")
+    author = db.relationship("User")
+
+    # Replies read top to bottom, oldest first. Deleting a thread deletes its replies.
+    posts = db.relationship(
+        "Post", back_populates="thread", order_by="Post.created_at",
+        cascade="all, delete-orphan",
+    )
+
+    @property
+    def reply_count(self):
+        return len(self.posts)
+
+    def __repr__(self):
+        return f"<Thread {self.title!r}>"
+
+
+class Post(db.Model):
+    """A reply in a thread, optionally with one attached file.
+
+    The attachment is a Resource, so forum uploads reuse the library's upload
+    code and safety checks instead of duplicating them.
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, nullable=False, default=utc_now)
+
+    thread_id = db.Column(db.Integer, db.ForeignKey("thread.id"), nullable=False)
+    author_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    attachment_resource_id = db.Column(db.Integer, db.ForeignKey("resource.id"))
+    thread = db.relationship("Thread", back_populates="posts")
+    author = db.relationship("User")
+    attachment = db.relationship("Resource")
+
+    def __repr__(self):
+        return f"<Post {self.id} in thread {self.thread_id}>"
