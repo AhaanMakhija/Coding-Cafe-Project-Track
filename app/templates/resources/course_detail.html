@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ course.code }}{% endblock %}
+
+{% block content %}
+  <hgroup>
+    <h1>{{ course.code }}: {{ course.name }}</h1>
+    <p>{{ course.term }} · {{ course.students | length }} enrolled</p>
+  </hgroup>
+
+  {% if course in current_user.courses %}
+    <form action="{{ url_for('resources.leave_course', course_id=course.id) }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="secondary outline">Leave course</button>
+    </form>
+  {% else %}
+    <form action="{{ url_for('resources.join_course', course_id=course.id) }}" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit">Join course</button>
+    </form>
+  {% endif %}
+
+  <h2>Resources</h2>
+  <p>No resources yet.</p>
+{% endblock %}

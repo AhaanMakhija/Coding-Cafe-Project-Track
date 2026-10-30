@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Courses{% endblock %}
+
+{% block content %}
+  <hgroup>
+    <h1>Courses</h1>
+    <p>Join the courses you take to see their files and discussions.</p>
+  </hgroup>
+
+  {% if current_user.is_staff %}
+    <p><a href="{{ url_for('resources.new_course') }}" role="button">New course</a></p>
+  {% endif %}
+
+  {% if courses %}
+    <table>
+      <thead><tr><th>Code</th><th>Name</th><th>Term</th><th></th></tr></thead>
+      <tbody>
+        {% for course in courses %}
+          <tr>
+            <td><a href="{{ url_for('resources.course_detail', course_id=course.id) }}">{{ course.code }}</a></td>
+            <td>{{ course.name }}</td>
+            <td>{{ course.term }}</td>
+            <td>{% if course in current_user.courses %}<mark>Joined</mark>{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No courses yet.{% if current_user.is_staff %} Create the first one.{% endif %}</p>
+  {% endif %}
+{% endblock %}

@@ -30,8 +30,10 @@ def create_app(config_class=Config):
         db.create_all()
 
     from app.auth import bp as auth_bp
+    from app.resources import bp as resources_bp
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(resources_bp, url_prefix="/courses")
 
     @app.route("/")
     def index():

@@ -10,11 +10,12 @@
     {% if user.courses %}
       <ul>
         {% for course in user.courses %}
-          <li><strong>{{ course.code }}</strong> {{ course.name }} ({{ course.term }})</li>
+          <li><a href="{{ url_for('resources.course_detail', course_id=course.id) }}"><strong>{{ course.code }}</strong></a>
+              {{ course.name }} ({{ course.term }})</li>
         {% endfor %}
       </ul>
     {% else %}
-      <p>You haven't joined any courses yet.</p>
+      <p>You haven't joined any courses yet. <a href="{{ url_for('resources.course_list') }}">Browse courses</a></p>
     {% endif %}
   </article>
 {% endblock %}

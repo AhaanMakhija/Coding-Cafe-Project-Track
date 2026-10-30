@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "_form.html" import field %}
+{% block title %}New course{% endblock %}
+
+{% block content %}
+  <article>
+    <h2>New course</h2>
+    <form method="post" novalidate>
+      {{ form.hidden_tag() }}
+      {{ field(form.code) }}
+      {{ field(form.name) }}
+      {{ field(form.term) }}
+      {{ form.submit() }}
+    </form>
+  </article>
+{% endblock %}

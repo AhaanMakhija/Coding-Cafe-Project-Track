@@ -20,6 +20,7 @@
       <ul><li><a href="{{ url_for('index') }}"><strong>ORBIT</strong></a></li></ul>
       <ul>
         {% if current_user.is_authenticated %}
+          <li><a href="{{ url_for('resources.course_list') }}">Courses</a></li>
           <li><a href="{{ url_for('auth.profile') }}">{{ current_user.name }}</a></li>
           <li>
             <form action="{{ url_for('auth.logout') }}" method="post">
