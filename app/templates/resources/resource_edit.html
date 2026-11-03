@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_form.html" import field %}
+{% block title %}Edit · {{ resource.title }}{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <span class="course-ticket">{{ resource.course.code }}</span>
+    <h1>Edit resource</h1>
+    <p class="lede">
+      {% if resource.kind == "file" %}
+        To replace the file itself, delete this resource and upload the new version.
+      {% else %}
+        You can change the link, title, type and tags.
+      {% endif %}
+    </p>
+  </div>
+
+  <form class="panel panel-narrow" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.title) }}
+    {% if resource.kind == "link" %}{{ field(form.url) }}{% endif %}
+    {{ field(form.resource_type) }}
+    {{ field(form.tags, hint=form.tags.description) }}
+    <div class="btn-row">
+      {{ form.submit(class="btn") }}
+      <a href="{{ url_for('resources.course_detail', course_id=resource.course_id) }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

@@ -63,12 +63,38 @@ class ResourceForm(FlaskForm):
             raise ValidationError("Choose a file to upload.")
 
     def validate_url(self, field):
-        if self.kind.data != "link":
-            return
-        if not field.data:
-            raise ValidationError("Enter a link.")
-        # Only web links. This blocks "javascript:..." links, which would run
-        # code in the browser of whoever clicks them.
-        parts = urlsplit(field.data)
-        if parts.scheme not in ("http", "https") or not parts.netloc:
-            raise ValidationError("Enter a full link starting with http:// or https://")
+        if self.kind.data == "link":
+            check_web_url(field.data)
+
+
+class EditResourceForm(FlaskForm):
+    """Edit a resource's details. The file itself can't be swapped: delete and re-upload instead."""
+
+    title = StringField("Title", filters=[strip_spaces],
+                        validators=[DataRequired(), Length(max=200)])
+    url = URLField("Link", filters=[strip_spaces], validators=[Length(max=500)])
+    resource_type = SelectField("Type", choices=[SelectChoice(t, t.capitalize()) for t in RESOURCE_TYPES])
+    tags = StringField("Tags", filters=[strip_spaces], validators=[Length(max=200)],
+                       description="Comma-separated, e.g. midterm, week 3")
+    submit = SubmitField("Save changes")
+
+    def __init__(self, *args, is_link=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.is_link = is_link
+
+    def validate_url(self, field):
+        if self.is_link:
+            check_web_url(field.data)
+
+
+def check_web_url(value):
+    """Raise ValidationError unless value is a full http(s) link.
+
+    This blocks "javascript:..." links, which would run code in the browser of
+    whoever clicks them.
+    """
+    if not value:
+        raise ValidationError("Enter a link.")
+    parts = urlsplit(value)
+    if parts.scheme not in ("http", "https") or not parts.netloc:
+        raise ValidationError("Enter a full link starting with http:// or https://")

@@ -34,8 +34,37 @@
   </div>
 
   {% if course.resources %}
+    {# A GET form: the filters end up in the URL, so a filtered view can be bookmarked or shared. #}
+    <form class="toolbar" method="get" role="search" aria-label="Filter resources">
+      <label class="search"><span>Search</span>
+        <input type="search" name="q" value="{{ filters.q }}" placeholder="Title or tag, e.g. midterm">
+      </label>
+      <label><span>Type</span>
+        <select name="type">
+          <option value="">All types</option>
+          {% for t in resource_types %}
+            <option value="{{ t }}" {% if filters.type == t %}selected{% endif %}>{{ t | capitalize }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label><span>Source</span>
+        <select name="official">
+          <option value="">Everyone</option>
+          <option value="official" {% if filters.official == "official" %}selected{% endif %}>Official only</option>
+          <option value="unofficial" {% if filters.official == "unofficial" %}selected{% endif %}>Students only</option>
+        </select>
+      </label>
+      <button type="submit" class="btn">Filter</button>
+    </form>
+    {% if filters.active %}
+      <p class="filter-note">Showing {{ resources | length }} of {{ course.resources | length | plural("resource") }}.
+        <a href="{{ url_for('resources.course_detail', course_id=course.id) }}">Clear filters</a></p>
+    {% endif %}
+  {% endif %}
+
+  {% if resources %}
     <ul class="res-list">
-      {% for r in course.resources %}
+      {% for r in resources %}
         <li class="res-row">
           <span class="res-type">{{ r.type }}</span>
           <div>
@@ -47,15 +76,39 @@
               <a class="res-title" href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.title }} ↗</a>
               <div class="res-meta">Link · {{ r.url | link_source }} · added by {{ r.uploader.name }}</div>
             {% endif %}
-            {% for tag in r.tag_list %}<span class="tag">{{ tag }}</span>{% endfor %}
+            {% for tag in r.tag_list %}
+              <a class="tag" href="{{ url_for('resources.course_detail', course_id=course.id, q=tag) }}">{{ tag }}</a>
+            {% endfor %}
           </div>
           <div class="res-side">
             {% if r.is_official %}<span class="stamp">Official</span>
             {% else %}<span class="stamp stamp-quiet">Unofficial</span>{% endif %}
+            {% if can_edit(current_user, r) or can_delete(current_user, r) %}
+              <div class="res-actions">
+                {% if can_edit(current_user, r) %}
+                  <a class="btn btn-ghost btn-sm" href="{{ url_for('resources.edit_resource', course_id=course.id, resource_id=r.id) }}">Edit</a>
+                {% endif %}
+                {% if can_delete(current_user, r) %}
+                  <form class="inline-form" method="post"
+                        action="{{ url_for('resources.delete_resource', course_id=course.id, resource_id=r.id) }}"
+                        {# Fixed text only: user-written titles must never go inside JavaScript. #}
+                        onsubmit="return confirm('Delete this resource? This cannot be undone.')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                  </form>
+                {% endif %}
+              </div>
+            {% endif %}
           </div>
         </li>
       {% endfor %}
     </ul>
+  {% elif filters.active %}
+    <div class="empty">
+      {{ empty_icon() }}
+      <p>Nothing matches those filters.</p>
+      <a class="btn btn-ghost" href="{{ url_for('resources.course_detail', course_id=course.id) }}">Clear filters</a>
+    </div>
   {% else %}
     <div class="empty">
       {{ empty_icon() }}

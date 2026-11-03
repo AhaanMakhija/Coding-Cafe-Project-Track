@@ -8,15 +8,36 @@ from werkzeug.utils import secure_filename
 
 from app.auth.decorators import staff_required
 from app.extensions import db
-from app.models import Course, Resource, split_tags
+from app.models import RESOURCE_TYPES, Course, Post, Resource, split_tags
 from app.resources import bp
-from app.resources.forms import CourseForm, ResourceForm
+from app.resources.forms import CourseForm, EditResourceForm, ResourceForm
+from app.resources.queries import ResourceFilters, filter_resources
 from app.resources.storage import delete_upload, file_extension, save_upload
 
+
+# --- Permission rules, in one place so routes and templates agree ---------------
 
 def can_add_resources(user, course):
     """Students must join a course before adding to it; staff can add anywhere."""
     return user.is_staff or course in user.courses
+
+
+def can_edit_resource(user, resource):
+    """Only the person who added a resource can change its details."""
+    return resource.uploader_id == user.id
+
+
+def can_delete_resource(user, resource):
+    """The uploader can delete their own; staff can remove anything (e.g. wrong or copyrighted files)."""
+    return resource.uploader_id == user.id or user.is_staff
+
+
+def get_course_resource_or_404(course_id, resource_id):
+    """Load a resource and make sure it really belongs to the course in the URL."""
+    resource = db.get_or_404(Resource, resource_id)
+    if resource.course_id != course_id:
+        abort(404)
+    return resource
 
 
 @bp.route("/")
@@ -43,9 +64,13 @@ def new_course():
 @login_required
 def course_detail(course_id):
     course = db.get_or_404(Course, course_id)
+    filters = ResourceFilters.from_args(request.args)
     return render_template(
         "resources/course_detail.html", course=course,
+        resources=filter_resources(course, filters), filters=filters,
+        resource_types=RESOURCE_TYPES,
         can_add=can_add_resources(current_user, course),
+        can_edit=can_edit_resource, can_delete=can_delete_resource,
     )
 
 
@@ -97,8 +122,8 @@ def new_resource(course_id):
 @bp.route("/<int:course_id>/resources/<int:resource_id>/download")
 @login_required
 def download_resource(course_id, resource_id):
-    resource = db.get_or_404(Resource, resource_id)
-    if resource.course_id != course_id or resource.kind != "file":
+    resource = get_course_resource_or_404(course_id, resource_id)
+    if resource.kind != "file":
         abort(404)
 
     # Saved as "<title>.<ext>" instead of the random stored name.
@@ -109,6 +134,57 @@ def download_resource(course_id, resource_id):
         current_app.config["UPLOAD_FOLDER"], resource.file_path,
         as_attachment=True, download_name=download_name,
     )
+
+
+@bp.route("/<int:course_id>/resources/<int:resource_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_resource(course_id, resource_id):
+    resource = get_course_resource_or_404(course_id, resource_id)
+    if not can_edit_resource(current_user, resource):
+        abort(403)
+
+    # data= fills the form with the current values on GET; on POST the
+    # submitted values take over.
+    form = EditResourceForm(is_link=resource.kind == "link", data={
+        "title": resource.title, "url": resource.url,
+        "resource_type": resource.type, "tags": resource.tags,
+    })
+    if form.validate_on_submit():
+        resource.title = form.title.data
+        resource.type = form.resource_type.data
+        resource.tags = ", ".join(split_tags(form.tags.data))
+        if resource.kind == "link":
+            resource.url = form.url.data
+        db.session.commit()
+        flash(f"Saved changes to “{resource.title}”.", "success")
+        return redirect(url_for("resources.course_detail", course_id=course_id))
+
+    return render_template("resources/resource_edit.html", form=form, resource=resource)
+
+
+@bp.route("/<int:course_id>/resources/<int:resource_id>/delete", methods=["POST"])
+@login_required
+def delete_resource(course_id, resource_id):
+    resource = get_course_resource_or_404(course_id, resource_id)
+    if not can_delete_resource(current_user, resource):
+        abort(403)
+
+    title, stored_file = resource.title, resource.file_path
+    # Forum posts that attached this file keep their text but lose the attachment.
+    db.session.execute(
+        db.update(Post).where(Post.attachment_resource_id == resource.id)
+        .values(attachment_resource_id=None)
+    )
+    db.session.delete(resource)
+    db.session.commit()
+
+    # Remove the file only after the database change succeeded, so a failed
+    # delete never leaves a row pointing at a missing file.
+    if stored_file:
+        delete_upload(stored_file, current_app.config["UPLOAD_FOLDER"])
+
+    flash(f"Deleted “{title}”.", "info")
+    return redirect(url_for("resources.course_detail", course_id=course_id))
 
 
 # Join and leave change data, so they are POST-only (like logout).
