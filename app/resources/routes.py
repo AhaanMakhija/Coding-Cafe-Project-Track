@@ -1,6 +1,8 @@
 """Routes for courses, enrollment and resources. All URLs here start with /courses."""
 
-from flask import abort, current_app, flash, redirect, render_template, send_from_directory, url_for
+from flask import (
+    abort, current_app, flash, redirect, render_template, request, send_from_directory, url_for,
+)
 from flask_login import current_user, login_required
 from werkzeug.utils import secure_filename
 
@@ -55,6 +57,11 @@ def new_resource(course_id):
         abort(403)
 
     form = ResourceForm()
+    # /resources/new?kind=link opens the form with "Link" already selected
+    # (used by the "file too large" page).
+    if request.method == "GET" and request.args.get("kind") == "link":
+        form.kind.data = "link"
+
     if form.validate_on_submit():
         resource = Resource(
             title=form.title.data,

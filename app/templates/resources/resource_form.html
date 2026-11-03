@@ -18,7 +18,9 @@
       </fieldset>
 
       {{ field(form.file) }}
-      <small>{{ form.file.description }} Used when “File upload” is selected.</small>
+      <small>{{ form.file.description }} Used when “File upload” is selected.
+        <strong>Bigger than {{ max_upload_mb }} MB?</strong> Choose “Link” and paste a
+        Google Drive or OneDrive share link instead.</small>
       {{ field(form.url) }}
       <small>{{ form.url.description }} Used when “Link” is selected.</small>
 

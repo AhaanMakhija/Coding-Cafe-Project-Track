@@ -4,8 +4,12 @@
 {% block content %}
   <article>
     <h2>That file is too large</h2>
-    <p>Uploads can be at most {{ max_mb }} MB. Try compressing the file, or save it to
-       Google Drive or OneDrive and add it as a link instead.</p>
-    <p>Use your browser's back button to return to the form.</p>
+    <p>Uploads can be at most {{ max_upload_mb }} MB. Save the file to Google Drive or
+       OneDrive, copy its share link, and add it as a link instead. Links have no size limit.</p>
+    {% if link_form_url %}
+      <p><a href="{{ link_form_url }}" role="button">Add as a link instead</a></p>
+    {% else %}
+      <p>Use your browser's back button to return to the form.</p>
+    {% endif %}
   </article>
 {% endblock %}

@@ -38,6 +38,7 @@
               {% else %}
                 {# rel="noopener noreferrer" stops the linked site from controlling this tab. #}
                 <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.title }} ↗</a>
+                <br><small>Link · {{ r.url | link_source }}</small>
               {% endif %}
             </td>
             <td>{{ r.type | capitalize }}</td>
