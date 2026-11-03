@@ -15,6 +15,8 @@ from app.extensions import db, login_manager
 ROLES = ("student", "staff")
 RESOURCE_KINDS = ("file", "link")
 RESOURCE_TYPES = ("notes", "slides", "past paper", "assignment", "other")
+# Index = ClassSlot.weekday, matching Python's date.weekday() (Monday is 0).
+WEEKDAYS = ("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 
 def utc_now():
@@ -196,6 +198,10 @@ class ClassSlot(db.Model):
         db.CheckConstraint("weekday BETWEEN 0 AND 6", name="valid_weekday"),
         db.CheckConstraint("end_time > start_time", name="slot_ends_after_start"),
     )
+
+    @property
+    def weekday_name(self):
+        return WEEKDAYS[self.weekday]
 
     def __repr__(self):
         return f"<ClassSlot day={self.weekday} {self.start_time}-{self.end_time}>"

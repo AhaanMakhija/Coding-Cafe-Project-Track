@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Calendar{% endblock %}
+
+{% block content %}
+  <div class="page-head page-head-row">
+    <div>
+      <p class="eyebrow">Timetable <span class="dot">●</span> {{ slots | length | plural("weekly class", "weekly classes") }}</p>
+      <h1>Your week</h1>
+      <p class="lede">Campus events and your own classes, on one calendar.</p>
+    </div>
+    <div class="btn-row">
+      <a class="btn" href="{{ url_for('calendar.new_class') }}">Add a class</a>
+      {% if current_user.is_staff %}
+        <a class="btn btn-ghost" href="{{ url_for('calendar.new_event') }}">New campus event</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="cal-layout">
+    <section class="cal-main" aria-label="Calendar">
+      <fieldset class="layers">
+        <legend class="field-label">Show</legend>
+        <label class="layer layer-campus"><input type="checkbox" data-layer="campus" checked> Campus events</label>
+        <label class="layer layer-classes"><input type="checkbox" data-layer="classes" checked> My classes</label>
+      </fieldset>
+      <div id="calendar" class="panel cal-panel"
+           data-events-url="{{ url_for('calendar.events_feed') }}"
+           data-classes-url="{{ url_for('calendar.classes_feed') }}">
+        <noscript>The calendar needs JavaScript. Your classes and upcoming events are listed alongside.</noscript>
+      </div>
+    </section>
+
+    <aside class="cal-side">
+      <div class="section-head section-head-tight">
+        <h2>My classes</h2>
+      </div>
+      {% if slots %}
+        <ul class="slot-list">
+          {% for s in slots %}
+            <li>
+              <span class="slot-day">{{ s.weekday_name[:3] }}</span>
+              <div>
+                <a href="{{ url_for('resources.course_detail', course_id=s.course_id) }}"><strong>{{ s.course.code }}</strong></a>
+                <div class="res-meta">{{ s.start_time.strftime("%H:%M") }}–{{ s.end_time.strftime("%H:%M") }}{% if s.room %} · Room {{ s.room }}{% endif %}</div>
+              </div>
+              <form class="inline-form" method="post" action="{{ url_for('calendar.delete_class', slot_id=s.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-sm" aria-label="Remove {{ s.course.code }} on {{ s.weekday_name }}">Remove</button>
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="count">No classes yet. Add your timetable to see it on the calendar.</p>
+      {% endif %}
+
+      <div class="section-head section-head-tight spaced">
+        <h2>Coming up</h2>
+      </div>
+      {% if events %}
+        <ul class="slot-list">
+          {% for e in events %}
+            <li>
+              <span class="slot-day slot-date">{{ e.start_at.strftime("%d %b") }}</span>
+              <div>
+                <a href="{{ url_for('calendar.event_detail', event_id=e.id) }}"><strong>{{ e.title }}</strong></a>
+                <div class="res-meta">{{ e.start_at.strftime("%a %H:%M") }}{% if e.location %} · {{ e.location }}{% endif %}</div>
+              </div>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="count">No upcoming campus events.</p>
+      {% endif %}
+    </aside>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+  <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
+{% endblock %}

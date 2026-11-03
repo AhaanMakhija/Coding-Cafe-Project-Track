@@ -21,6 +21,8 @@
         {% if current_user.is_authenticated %}
           <a href="{{ url_for('resources.course_list') }}"
              {% if section == "resources" %}aria-current="page"{% endif %}>Courses</a>
+          <a href="{{ url_for('calendar.calendar_page') }}"
+             {% if section == "calendar" %}aria-current="page"{% endif %}>Calendar</a>
           <a href="{{ url_for('auth.profile') }}"
              {% if request.endpoint == "auth.profile" %}aria-current="page"{% endif %}>{{ current_user.name }}</a>
           <span class="user-chip">{{ current_user.role }}</span>

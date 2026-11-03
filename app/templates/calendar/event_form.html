@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_form.html" import field %}
+{% block title %}{{ "Edit event" if event else "New event" }}{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <p class="eyebrow">Staff <span class="dot">●</span> Campus calendar</p>
+    <h1>{{ "Edit event" if event else "New campus event" }}</h1>
+    <p class="lede">Everyone sees campus events on their calendar.</p>
+  </div>
+
+  <form class="panel panel-narrow" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.title) }}
+    <div class="field-pair">
+      {{ field(form.start_at) }}
+      {{ field(form.end_at) }}
+    </div>
+    {{ field(form.location, hint=form.location.description) }}
+    {{ field(form.description) }}
+    <div class="btn-row">
+      {{ form.submit(class="btn") }}
+      <a href="{{ url_for('calendar.event_detail', event_id=event.id) if event else url_for('calendar.calendar_page') }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

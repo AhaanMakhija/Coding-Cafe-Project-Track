@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "_form.html" import field %}
+{% block title %}Add a class{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <p class="eyebrow">Your timetable</p>
+    <h1>Add a weekly class</h1>
+    <p class="lede">It repeats every week on your calendar. Add one entry per day, e.g. Monday and Wednesday.</p>
+  </div>
+
+  <form class="panel panel-narrow" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.course_id) }}
+    {{ field(form.weekday) }}
+    <div class="field-pair">
+      {{ field(form.start_time) }}
+      {{ field(form.end_time) }}
+    </div>
+    {{ field(form.room, hint=form.room.description) }}
+    <div class="btn-row">
+      {{ form.submit(class="btn") }}
+      <a href="{{ url_for('calendar.calendar_page') }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

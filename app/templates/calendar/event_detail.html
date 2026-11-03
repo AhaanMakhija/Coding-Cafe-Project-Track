@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <p class="eyebrow">Campus event <span class="dot">●</span> posted by {{ event.creator.name }}</p>
+    <h1>{{ event.title }}</h1>
+  </div>
+
+  <div class="panel panel-narrow">
+    <dl class="facts">
+      <dt>When</dt>
+      <dd>{{ event.start_at.strftime("%A %d %B %Y, %H:%M") }} – {{ event.end_at.strftime("%H:%M" if event.end_at.date() == event.start_at.date() else "%A %d %B, %H:%M") }}</dd>
+      {% if event.location %}<dt>Where</dt><dd>{{ event.location }}</dd>{% endif %}
+    </dl>
+    {% if event.description %}
+      {# white-space: pre-line keeps the line breaks staff typed, without allowing HTML. #}
+      <p class="event-description">{{ event.description }}</p>
+    {% endif %}
+
+    <div class="btn-row">
+      <a href="{{ url_for('calendar.calendar_page') }}">Back to calendar</a>
+      {% if current_user.is_staff %}
+        <a class="btn btn-ghost btn-sm" href="{{ url_for('calendar.edit_event', event_id=event.id) }}">Edit</a>
+        <form class="inline-form" method="post" action="{{ url_for('calendar.delete_event', event_id=event.id) }}"
+              onsubmit="return confirm('Delete this event? This cannot be undone.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

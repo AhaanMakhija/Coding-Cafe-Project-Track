@@ -170,6 +170,7 @@ main.wrap { padding-top: 40px; padding-bottom: 80px; }
 }
 .field input[type="text"], .field input[type="email"], .field input[type="password"],
 .field input[type="url"], .field input[type="search"], .field select, .field textarea,
+.field input[type="datetime-local"], .field input[type="time"],
 .toolbar input, .toolbar select {
   width: 100%;
   font: 1rem var(--font-body); color: var(--ink);
@@ -349,6 +350,71 @@ a.tag:hover { color: var(--paper); background: var(--ink); }
   font: 600 1.6rem var(--font-display); background: var(--paper-sunk);
 }
 
+/* ---------- Calendar ---------- */
+
+.field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.field textarea { min-height: 120px; resize: vertical; }
+
+.cal-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 32px; align-items: start; }
+.cal-panel { padding: 16px; }
+
+.layers { border: 0; padding: 0; margin: 0 0 12px; display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.layers legend { float: left; margin: 0 4px 0 0; padding: 0; }
+.layer { display: inline-flex; gap: 8px; align-items: center; font-weight: 500; cursor: pointer; }
+.layer input { width: 18px; height: 18px; }
+.layer-campus input  { accent-color: var(--teal); }
+.layer-classes input { accent-color: var(--accent); }
+.layer::after { content: ""; width: 22px; height: 8px; }
+.layer-campus::after  { background: var(--teal); }
+.layer-classes::after { background: var(--accent); }
+
+.section-head-tight { margin-top: 0; margin-bottom: 4px; }
+.section-head-tight.spaced { margin-top: 32px; }
+.cal-side h2 { font-size: 1.3rem; }
+
+.slot-list { list-style: none; padding: 0; margin: 0; }
+.slot-list li {
+  display: grid; grid-template-columns: 52px 1fr auto; gap: 12px; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--line-soft);
+}
+.slot-day {
+  font: 700 .72rem var(--font-mono); letter-spacing: .1em; text-transform: uppercase; text-align: center;
+  background: var(--accent); color: var(--paper); padding: 4px 0;
+}
+.slot-date { background: var(--teal); }
+.slot-list .res-meta { margin: 2px 0 0; }
+
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; margin: 0 0 18px; }
+.facts dt { font: 600 .75rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; padding-top: 3px; }
+.facts dd { margin: 0; }
+.event-description { white-space: pre-line; border-top: 1px solid var(--line-soft); padding-top: 16px; }
+
+/* FullCalendar reads these variables, so it picks up ORBIT's look. */
+.fc {
+  --fc-border-color: var(--line-soft);
+  --fc-page-bg-color: var(--paper-raised);
+  --fc-neutral-bg-color: var(--paper-sunk);
+  --fc-today-bg-color: rgba(226, 85, 45, .07);
+  --fc-now-indicator-color: var(--accent);
+  --fc-button-bg-color: var(--paper-raised);
+  --fc-button-border-color: var(--ink);
+  --fc-button-text-color: var(--ink);
+  --fc-button-hover-bg-color: var(--paper-sunk);
+  --fc-button-hover-border-color: var(--ink);
+  --fc-button-active-bg-color: var(--ink);
+  --fc-button-active-border-color: var(--ink);
+  --fc-list-event-hover-bg-color: var(--paper-sunk);
+  font-size: .9rem;
+}
+.fc .fc-toolbar-title { font: 600 1.35rem var(--font-display); }
+.fc .fc-button { border-radius: 0; border-width: 1.5px; font-weight: 600; text-transform: none; box-shadow: none !important; }
+.fc .fc-button-primary:not(:disabled).fc-button-active { color: var(--paper); }
+.fc .fc-col-header-cell-cushion, .fc .fc-timegrid-slot-label-cushion, .fc .fc-daygrid-day-number {
+  font-family: var(--font-mono); font-size: .76rem; color: var(--ink-muted); text-decoration: none;
+}
+.fc .fc-event { border-radius: 0; font-weight: 600; }
+.fc a { text-decoration: none; }
+
 /* ---------- Footer ---------- */
 
 .site-footer { border-top: 1.5px solid var(--line); padding: 20px 0; font: .78rem var(--font-mono); color: var(--ink-muted); }
@@ -362,6 +428,9 @@ a.tag:hover { color: var(--paper); background: var(--ink); }
   .modules { grid-template-columns: 1fr; }
   .module { border-right: 0; border-bottom: 1.5px solid var(--line); }
   .module:last-child { border-bottom: 0; }
+  .cal-layout { grid-template-columns: 1fr; }
+  .field-pair { grid-template-columns: 1fr; gap: 0; }
+  .fc .fc-toolbar { flex-direction: column; gap: 8px; }
   .toolbar { grid-template-columns: 1fr 1fr; }
   .toolbar .search { grid-column: 1 / -1; }
   .res-row { grid-template-columns: 1fr; gap: 8px; }
