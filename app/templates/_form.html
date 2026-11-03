@@ -1,12 +1,14 @@
-{# Renders one WTForms field with its label and any validation errors. #}
-{% macro field(f) %}
-  <label for="{{ f.id }}">
-    {{ f.label.text }}
+{# Renders one WTForms field with its label, an optional hint and any errors.
+   extra_class lets a page tag a field, e.g. "only-file", so CSS can hide it. #}
+{% macro field(f, hint=None, extra_class="") %}
+  <div class="field {{ extra_class }}">
+    <label class="field-label" for="{{ f.id }}">{{ f.label.text }}</label>
     {% if f.errors %}
       {{ f(aria_invalid="true", aria_describedby=f.id ~ "-error") }}
-      <small id="{{ f.id }}-error">{{ f.errors | join(" ") }}</small>
+      <span class="error" id="{{ f.id }}-error">{{ f.errors | join(" ") }}</span>
     {% else %}
       {{ f() }}
     {% endif %}
-  </label>
+    {% if hint %}<span class="hint">{{ hint }}</span>{% endif %}
+  </div>
 {% endmacro %}

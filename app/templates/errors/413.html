@@ -2,14 +2,15 @@
 {% block title %}File too large{% endblock %}
 
 {% block content %}
-  <article>
-    <h2>That file is too large</h2>
+  <div class="panel panel-narrow">
+    <p class="eyebrow">Error 413</p>
+    <h1>That file is too large.</h1>
     <p>Uploads can be at most {{ max_upload_mb }} MB. Save the file to Google Drive or
        OneDrive, copy its share link, and add it as a link instead. Links have no size limit.</p>
     {% if link_form_url %}
-      <p><a href="{{ link_form_url }}" role="button">Add as a link instead</a></p>
+      <a href="{{ link_form_url }}" class="btn">Add as a link instead</a>
     {% else %}
       <p>Use your browser's back button to return to the form.</p>
     {% endif %}
-  </article>
+  </div>
 {% endblock %}

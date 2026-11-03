@@ -42,7 +42,7 @@ class ResourceForm(FlaskForm):
 
     title = StringField("Title", filters=[strip_spaces],
                         validators=[DataRequired(), Length(max=200)])
-    kind = RadioField("Add a", choices=[SelectChoice("file", "File upload"),
+    kind = RadioField("What are you adding?", choices=[SelectChoice("file", "File upload"),
                                         SelectChoice("link", "Link")],
                       default="file", validators=[DataRequired()])
     file = FileField("File", validators=[

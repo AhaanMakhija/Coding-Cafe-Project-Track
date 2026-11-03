@@ -1,18 +1,62 @@
 {% extends "base.html" %}
+{% from "_art.html" import orbit_art, empty_icon %}
+{% from "resources/_course_card.html" import course_card with context %}
 {% block title %}Home{% endblock %}
 
 {% block content %}
-  <hgroup>
-    <h1>ORBIT</h1>
-    <p>Organized Resources, Boards, Info &amp; Timetable</p>
-  </hgroup>
-  <p>Course files, discussions and your calendar in one place.</p>
-
   {% if current_user.is_authenticated %}
-    <p>Signed in as <strong>{{ current_user.name }}</strong>.
-       <a href="{{ url_for('auth.profile') }}">Go to your profile</a>.</p>
+    <div class="page-head page-head-row">
+      <div>
+        <p class="eyebrow">Your orbit <span class="dot">●</span> {{ current_user.courses | length | plural("course") }}</p>
+        <h1>Hello, {{ current_user.name.split()[0] }}.</h1>
+        <p class="lede">Everything for the courses you take, in one place.</p>
+      </div>
+      <a class="btn btn-ghost" href="{{ url_for('resources.course_list') }}">Browse all courses</a>
+    </div>
+
+    {% if current_user.courses %}
+      <ul class="course-grid">
+        {% for course in current_user.courses %}<li>{{ course_card(course) }}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <div class="empty">
+        {{ empty_icon() }}
+        <p>Your orbit is empty. Join the courses you take to see their files here.</p>
+        <a class="btn" href="{{ url_for('resources.course_list') }}">Find your courses</a>
+      </div>
+    {% endif %}
+
   {% else %}
-    <p><a href="{{ url_for('auth.signup') }}" role="button">Create an account</a>
-       <a href="{{ url_for('auth.login') }}" role="button" class="secondary">Log in</a></p>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">For Plaksha students <span class="dot">●</span> Explorer Track 2026</p>
+        <h1>Every course, <em>one orbit.</em></h1>
+        <p class="lede">Notes, slides and past papers that used to be spread across Drive folders,
+           WhatsApp groups and emails, together with the people who share them.</p>
+        <div class="btn-row">
+          <a class="btn" href="{{ url_for('auth.signup') }}">Create an account</a>
+          <a class="btn btn-ghost" href="{{ url_for('auth.login') }}">Log in</a>
+        </div>
+      </div>
+      {{ orbit_art() }}
+    </section>
+
+    <section class="modules" aria-label="What ORBIT does">
+      <div class="module">
+        <span class="mono">LIBRARY</span>
+        <h3>Find the file</h3>
+        <p>Upload files or save Drive and OneDrive links to a course. Staff files are stamped official.</p>
+      </div>
+      <div class="module">
+        <span class="mono">CALENDAR</span>
+        <h3>See your week</h3>
+        <p>Campus events and your own classes on one calendar. Coming in Week 5.</p>
+      </div>
+      <div class="module">
+        <span class="mono">BOARDS</span>
+        <h3>Ask the class</h3>
+        <p>A discussion board for every course, with attachments. Coming in Week 6.</p>
+      </div>
+    </section>
   {% endif %}
 {% endblock %}

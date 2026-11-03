@@ -39,6 +39,11 @@ def create_app(config_class=Config):
     def index():
         return render_template("index.html")
 
+    @app.template_filter("plural")
+    def plural(count, word):
+        """{{ 3 | plural("file") }} -> "3 files", {{ 1 | plural("file") }} -> "1 file"."""
+        return f"{count} {word}" if count == 1 else f"{count} {word}s"
+
     @app.context_processor
     def upload_limit():
         """Make the upload limit available to every template as max_upload_mb."""

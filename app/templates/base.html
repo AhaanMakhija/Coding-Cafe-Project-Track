@@ -1,47 +1,55 @@
+{% from "_art.html" import logo %}
 <!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}ORBIT{% endblock %} · ORBIT</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2.0.6/css/pico.min.css">
-  <style>
-    .flash-success { border-left: 4px solid #2e7d32; }
-    .flash-error   { border-left: 4px solid #c62828; }
-    .flash-warning { border-left: 4px solid #ef6c00; }
-    .flash-info    { border-left: 4px solid #1565c0; }
-    nav form { margin: 0; }
-    nav form button { padding: .4rem .9rem; margin: 0; }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,500&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/orbit.css') }}">
 </head>
 <body>
-  <header class="container">
-    <nav>
-      <ul><li><a href="{{ url_for('index') }}"><strong>ORBIT</strong></a></li></ul>
-      <ul>
+  {# Which nav link to underline: the Blueprint of the current page. #}
+  {% set section = request.blueprint or "home" %}
+
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="{{ url_for('index') }}">{{ logo() }} ORBIT</a>
+      <nav class="nav" aria-label="Main">
         {% if current_user.is_authenticated %}
-          <li><a href="{{ url_for('resources.course_list') }}">Courses</a></li>
-          <li><a href="{{ url_for('auth.profile') }}">{{ current_user.name }}</a></li>
-          <li>
-            <form action="{{ url_for('auth.logout') }}" method="post">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="secondary outline">Log out</button>
-            </form>
-          </li>
+          <a href="{{ url_for('resources.course_list') }}"
+             {% if section == "resources" %}aria-current="page"{% endif %}>Courses</a>
+          <a href="{{ url_for('auth.profile') }}"
+             {% if request.endpoint == "auth.profile" %}aria-current="page"{% endif %}>{{ current_user.name }}</a>
+          <span class="user-chip">{{ current_user.role }}</span>
+          <form class="inline-form" action="{{ url_for('auth.logout') }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-ghost btn-sm">Log out</button>
+          </form>
         {% else %}
-          <li><a href="{{ url_for('auth.login') }}">Log in</a></li>
-          <li><a href="{{ url_for('auth.signup') }}" role="button">Sign up</a></li>
+          <a href="{{ url_for('auth.login') }}"
+             {% if request.endpoint == "auth.login" %}aria-current="page"{% endif %}>Log in</a>
+          <a href="{{ url_for('auth.signup') }}" class="btn btn-sm">Sign up</a>
         {% endif %}
-      </ul>
-    </nav>
+      </nav>
+    </div>
   </header>
 
-  <main class="container">
+  <main class="wrap">
     {% for category, message in get_flashed_messages(with_categories=true) %}
-      <article class="flash-{{ category }}">{{ message }}</article>
+      <div class="flash flash-{{ category }}" role="status">
+        <span class="flash-label">{{ {"success": "Done", "error": "Error", "warning": "Note", "info": "Info"}.get(category, "Note") }}</span>
+        <span>{{ message }}</span>
+      </div>
     {% endfor %}
 
     {% block content %}{% endblock %}
   </main>
+
+  <footer class="site-footer">
+    <div class="wrap">ORBIT · Organized Resources, Boards, Info &amp; Timetable</div>
+  </footer>
 </body>
 </html>

@@ -1,21 +1,34 @@
 {% extends "base.html" %}
+{% from "_art.html" import empty_icon %}
+{% from "resources/_course_card.html" import course_card with context %}
 {% block title %}Profile{% endblock %}
 
 {% block content %}
-  <article>
-    <h2>{{ user.name }}</h2>
-    <p>{{ user.email }} · <mark>{{ user.role | capitalize }}</mark></p>
+  <div class="page-head">
+    <p class="eyebrow">Profile</p>
+    <div class="profile-card">
+      <div class="avatar" aria-hidden="true">{{ user.name[:1] | upper }}</div>
+      <div>
+        <h1 class="profile-name">{{ user.name }}</h1>
+        <p class="mono profile-email">{{ user.email }}
+          <span class="stamp {{ '' if user.is_staff else 'stamp-teal' }}">{{ user.role | capitalize }}</span></p>
+      </div>
+    </div>
+  </div>
 
-    <h3>My courses</h3>
-    {% if user.courses %}
-      <ul>
-        {% for course in user.courses %}
-          <li><a href="{{ url_for('resources.course_detail', course_id=course.id) }}"><strong>{{ course.code }}</strong></a>
-              {{ course.name }} ({{ course.term }})</li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>You haven't joined any courses yet. <a href="{{ url_for('resources.course_list') }}">Browse courses</a></p>
-    {% endif %}
-  </article>
+  <div class="section-head">
+    <h2>My courses</h2>
+    <span class="count">{{ user.courses | length }} joined</span>
+  </div>
+  {% if user.courses %}
+    <ul class="course-grid course-grid-spaced">
+      {% for course in user.courses %}<li>{{ course_card(course) }}</li>{% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty">
+      {{ empty_icon() }}
+      <p>You haven't joined any courses yet.</p>
+      <a class="btn" href="{{ url_for('resources.course_list') }}">Browse courses</a>
+    </div>
+  {% endif %}
 {% endblock %}

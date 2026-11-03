@@ -1,55 +1,66 @@
 {% extends "base.html" %}
+{% from "_art.html" import empty_icon %}
 {% block title %}{{ course.code }}{% endblock %}
 
 {% block content %}
-  <hgroup>
-    <h1>{{ course.code }}: {{ course.name }}</h1>
-    <p>{{ course.term }} · {{ course.students | length }} enrolled</p>
-  </hgroup>
+  <div class="page-head page-head-row">
+    <div>
+      <span class="course-ticket">{{ course.code }}</span>
+      <h1>{{ course.name }}</h1>
+      <p class="eyebrow">{{ course.term }} <span class="dot">●</span> {{ course.students | length }} enrolled</p>
+    </div>
+    <div class="btn-row">
+      {% if course in current_user.courses %}
+        <form class="inline-form" action="{{ url_for('resources.leave_course', course_id=course.id) }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-ghost">Leave course</button>
+        </form>
+      {% else %}
+        <form class="inline-form" action="{{ url_for('resources.join_course', course_id=course.id) }}" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn">Join course</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
 
-  {% if course in current_user.courses %}
-    <form action="{{ url_for('resources.leave_course', course_id=course.id) }}" method="post">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="submit" class="secondary outline">Leave course</button>
-    </form>
-  {% else %}
-    <form action="{{ url_for('resources.join_course', course_id=course.id) }}" method="post">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="submit">Join course</button>
-    </form>
-  {% endif %}
-
-  <h2>Resources</h2>
-  {% if can_add %}
-    <p><a href="{{ url_for('resources.new_resource', course_id=course.id) }}" role="button">Add resource</a></p>
-  {% else %}
-    <p><small>Join this course to add resources.</small></p>
-  {% endif %}
+  <div class="section-head">
+    <h2>Library</h2>
+    {% if can_add %}
+      <a class="btn btn-sm" href="{{ url_for('resources.new_resource', course_id=course.id) }}">Add resource</a>
+    {% else %}
+      <span class="count">Join this course to add resources.</span>
+    {% endif %}
+  </div>
 
   {% if course.resources %}
-    <table>
-      <thead><tr><th>Title</th><th>Type</th><th>Tags</th><th>Added by</th><th></th></tr></thead>
-      <tbody>
-        {% for r in course.resources %}
-          <tr>
-            <td>
-              {% if r.kind == "file" %}
-                <a href="{{ url_for('resources.download_resource', course_id=course.id, resource_id=r.id) }}">{{ r.title }}</a>
-              {% else %}
-                {# rel="noopener noreferrer" stops the linked site from controlling this tab. #}
-                <a href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.title }} ↗</a>
-                <br><small>Link · {{ r.url | link_source }}</small>
-              {% endif %}
-            </td>
-            <td>{{ r.type | capitalize }}</td>
-            <td>{{ r.tag_list | join(", ") }}</td>
-            <td>{{ r.uploader.name }}</td>
-            <td>{% if r.is_official %}<mark>Official</mark>{% else %}<small>Unofficial</small>{% endif %}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <ul class="res-list">
+      {% for r in course.resources %}
+        <li class="res-row">
+          <span class="res-type">{{ r.type }}</span>
+          <div>
+            {% if r.kind == "file" %}
+              <a class="res-title" href="{{ url_for('resources.download_resource', course_id=course.id, resource_id=r.id) }}">{{ r.title }}</a>
+              <div class="res-meta">File · {{ r.file_path.rsplit(".", 1)[-1] | upper }} · added by {{ r.uploader.name }}</div>
+            {% else %}
+              {# rel="noopener noreferrer" stops the linked site from controlling this tab. #}
+              <a class="res-title" href="{{ r.url }}" target="_blank" rel="noopener noreferrer">{{ r.title }} ↗</a>
+              <div class="res-meta">Link · {{ r.url | link_source }} · added by {{ r.uploader.name }}</div>
+            {% endif %}
+            {% for tag in r.tag_list %}<span class="tag">{{ tag }}</span>{% endfor %}
+          </div>
+          <div class="res-side">
+            {% if r.is_official %}<span class="stamp">Official</span>
+            {% else %}<span class="stamp stamp-quiet">Unofficial</span>{% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
   {% else %}
-    <p>No resources yet.</p>
+    <div class="empty">
+      {{ empty_icon() }}
+      <p>No resources yet. Be the first to share notes or slides for {{ course.code }}.</p>
+      {% if can_add %}<a class="btn" href="{{ url_for('resources.new_resource', course_id=course.id) }}">Add resource</a>{% endif %}
+    </div>
   {% endif %}
 {% endblock %}

@@ -1,0 +1,44 @@
+{# Inline SVG drawings, so the site needs no image files. #}
+
+{% macro logo() %}
+  <svg viewBox="0 0 40 40" aria-hidden="true">
+    <ellipse cx="20" cy="20" rx="17" ry="8" fill="none" stroke="currentColor" stroke-width="2"
+             transform="rotate(-24 20 20)"/>
+    <circle cx="20" cy="20" r="5" fill="currentColor"/>
+    <circle cx="34" cy="13" r="3" fill="#e2552d"/>
+  </svg>
+{% endmacro %}
+
+{# The hero drawing: courses as small bodies on tilted orbits around you. #}
+{% macro orbit_art(labels=("CS101", "MA102", "EVENTS")) %}
+  <svg class="orbit-art" viewBox="0 0 400 320" role="img" aria-label="Courses orbiting a student">
+    <g fill="none" stroke="#1d1b18" stroke-width="1.5">
+      <ellipse cx="200" cy="160" rx="180" ry="62" transform="rotate(-14 200 160)"/>
+      <ellipse cx="200" cy="160" rx="128" ry="44" transform="rotate(-14 200 160)" stroke-dasharray="4 6"/>
+      <ellipse cx="200" cy="160" rx="76" ry="26" transform="rotate(-14 200 160)"/>
+    </g>
+    <circle cx="200" cy="160" r="22" fill="#1d1b18"/>
+    <text x="200" y="165" text-anchor="middle" font-family="IBM Plex Mono, monospace"
+          font-size="12" font-weight="600" fill="#f3eee4">YOU</text>
+
+    <g font-family="IBM Plex Mono, monospace" font-size="11" font-weight="600">
+      <rect x="18" y="168" width="64" height="24" fill="#fbf8f2" stroke="#1d1b18" stroke-width="1.5"/>
+      <text x="50" y="184" text-anchor="middle" fill="#1d1b18">{{ labels[0] }}</text>
+
+      <rect x="262" y="94" width="64" height="24" fill="#e2552d" stroke="#1d1b18" stroke-width="1.5"/>
+      <text x="294" y="110" text-anchor="middle" fill="#fbf8f2">{{ labels[1] }}</text>
+
+      <rect x="292" y="214" width="70" height="24" fill="#1f5a63" stroke="#1d1b18" stroke-width="1.5"/>
+      <text x="327" y="230" text-anchor="middle" fill="#fbf8f2">{{ labels[2] }}</text>
+    </g>
+    <circle cx="142" cy="130" r="5" fill="#e2552d"/>
+  </svg>
+{% endmacro %}
+
+{% macro empty_icon() %}
+  <svg viewBox="0 0 72 72" aria-hidden="true">
+    <ellipse cx="36" cy="36" rx="30" ry="12" fill="none" stroke="currentColor" stroke-width="1.5"
+             stroke-dasharray="4 5" transform="rotate(-18 36 36)"/>
+    <circle cx="36" cy="36" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/>
+  </svg>
+{% endmacro %}

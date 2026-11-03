@@ -1,17 +1,26 @@
 {% extends "base.html" %}
 {% from "_form.html" import field %}
+{% from "_art.html" import orbit_art %}
 {% block title %}Log in{% endblock %}
 
 {% block content %}
-  <article>
-    <h2>Log in</h2>
-    <form method="post" novalidate>
+  <div class="split">
+    <div class="split-aside">
+      <p class="eyebrow">Welcome back</p>
+      <h1>Log in to ORBIT.</h1>
+      <p class="lede">Pick up where you left off: your courses, files and calendar.</p>
+      {{ orbit_art() }}
+    </div>
+
+    <form class="panel" method="post" novalidate>
       {{ form.hidden_tag() }}
       {{ field(form.email) }}
       {{ field(form.password) }}
-      <label>{{ form.remember() }} {{ form.remember.label.text }}</label>
-      {{ form.submit() }}
+      <label class="check">{{ form.remember() }} {{ form.remember.label.text }}</label>
+      <div class="btn-row">
+        {{ form.submit(class="btn") }}
+        <span>New here? <a href="{{ url_for('auth.signup') }}">Create an account</a></span>
+      </div>
     </form>
-    <p>New here? <a href="{{ url_for('auth.signup') }}">Create an account</a></p>
-  </article>
+  </div>
 {% endblock %}

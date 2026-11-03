@@ -1,0 +1,9 @@
+{# One course as an index card. Used on Home, Courses and Profile. #}
+{% macro course_card(course) %}
+  <a class="course-card" href="{{ url_for('resources.course_detail', course_id=course.id) }}">
+    <span class="course-code">{{ course.code }}</span>
+    {% if course in current_user.courses %}<span class="stamp stamp-teal">Joined</span>{% endif %}
+    <span class="course-name">{{ course.name }}</span>
+    <span class="course-meta">{{ course.term }} · {{ course.resources | length | plural("file") }} · {{ course.students | length }} enrolled</span>
+  </a>
+{% endmacro %}
