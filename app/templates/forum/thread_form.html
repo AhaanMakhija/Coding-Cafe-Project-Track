@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "_form.html" import field %}
+{% block title %}New thread · {{ course.code }}{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <span class="course-ticket">{{ course.code }}</span>
+    <h1>Start a thread</h1>
+  </div>
+
+  <form class="panel panel-narrow" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    {{ field(form.title, hint=form.title.description) }}
+    {{ field(form.body, hint="You can attach files in a reply once the thread is started.") }}
+    <div class="btn-row">
+      {{ form.submit(class="btn") }}
+      <a href="{{ url_for('forum.board', course_id=course.id) }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

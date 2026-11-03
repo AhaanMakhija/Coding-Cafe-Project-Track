@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% from "_art.html" import empty_icon %}
+{% block title %}Board · {{ course.code }}{% endblock %}
+
+{% block content %}
+  <div class="page-head page-head-row">
+    <div>
+      <a class="course-ticket" href="{{ url_for('resources.course_detail', course_id=course.id) }}">{{ course.code }}</a>
+      <h1>Board</h1>
+      <p class="lede">Questions and discussion for {{ course.name }}.</p>
+    </div>
+    {% if can_post %}
+      <a class="btn" href="{{ url_for('forum.new_thread', course_id=course.id) }}">Start a thread</a>
+    {% endif %}
+  </div>
+
+  <div class="section-head">
+    <h2>Threads</h2>
+    <span class="count">{{ course.threads | length | plural("thread") }} · newest first</span>
+  </div>
+
+  {% if course.threads %}
+    <ul class="thread-list">
+      {% for t in course.threads %}
+        <li class="thread-row">
+          <span class="reply-count {% if not t.reply_count %}reply-count-zero{% endif %}">
+            <strong>{{ t.reply_count }}</strong> {{ "reply" if t.reply_count == 1 else "replies" }}
+          </span>
+          <div>
+            <a class="res-title" href="{{ url_for('forum.thread_detail', thread_id=t.id) }}">{{ t.title }}</a>
+            <div class="res-meta">started by {{ t.author.name }} · {{ t.created_at | timeago }}</div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <div class="empty">
+      {{ empty_icon() }}
+      <p>No threads yet. Ask the first question about {{ course.code }}.</p>
+      {% if can_post %}<a class="btn" href="{{ url_for('forum.new_thread', course_id=course.id) }}">Start a thread</a>{% endif %}
+    </div>
+  {% endif %}
+
+  {% if not can_post %}
+    <p class="filter-note">Join {{ course.code }} to start threads and reply.</p>
+  {% endif %}
+{% endblock %}

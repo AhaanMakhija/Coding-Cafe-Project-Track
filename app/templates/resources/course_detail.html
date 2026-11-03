@@ -10,6 +10,9 @@
       <p class="eyebrow">{{ course.term }} <span class="dot">●</span> {{ course.students | length }} enrolled</p>
     </div>
     <div class="btn-row">
+      <a class="btn btn-ghost" href="{{ url_for('forum.board', course_id=course.id) }}">
+        Board · {{ course.threads | length | plural("thread") }}
+      </a>
       {% if course in current_user.courses %}
         <form class="inline-form" action="{{ url_for('resources.leave_course', course_id=course.id) }}" method="post">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

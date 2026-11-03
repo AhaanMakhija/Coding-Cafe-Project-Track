@@ -4,6 +4,7 @@ import os
 
 from flask import Flask, render_template, request, url_for
 
+from app import template_filters
 from app.extensions import csrf, db, login_manager
 from config import Config
 
@@ -31,23 +32,19 @@ def create_app(config_class=Config):
 
     from app.auth import bp as auth_bp
     from app.calendar import bp as calendar_bp
+    from app.forum import bp as forum_bp
     from app.resources import bp as resources_bp
 
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(resources_bp, url_prefix="/courses")
     app.register_blueprint(calendar_bp, url_prefix="/calendar")
+    app.register_blueprint(forum_bp, url_prefix="/board")
 
     @app.route("/")
     def index():
         return render_template("index.html")
 
-    @app.template_filter("plural")
-    def plural(count, word, plural_word=None):
-        """{{ 3 | plural("file") }} -> "3 files"; {{ 1 | plural("file") }} -> "1 file".
-
-        Irregular words pass their plural: {{ n | plural("class", "classes") }}.
-        """
-        return f"{count} {word}" if count == 1 else f"{count} {plural_word or word + 's'}"
+    template_filters.register(app)
 
     @app.context_processor
     def upload_limit():

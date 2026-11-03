@@ -3,7 +3,7 @@
 **Organized Resources, Boards, Info & Timetable**: one place for Plaksha students to find course material, discuss it, and see campus events alongside their own classes.
 
 > Explorer Track project for Coding Café (FM102), 2026, built by Ahaan Makhija.
-> Status: **Core complete** (accounts, library, calendar). Next: course boards, then feature freeze.
+> Status: **Feature complete** (accounts, library, calendar, boards). Feature freeze from Week 6: the rest of the term is testing, polish and docs.
 
 ---
 
@@ -19,7 +19,7 @@ Course notes, slides and past papers are scattered across Drive folders, WhatsAp
 | **Courses** | Browse the catalogue, join and leave the courses you take. Staff create courses. | ✅ Built |
 | **Resource library** | Upload files (PDF, DOCX, PPTX, PNG, JPG; 10 MB max) or save links (Google Drive, OneDrive, YouTube, any web page). Staff uploads are stamped **official**. Search titles and tags, filter by type and source, edit or delete your own. | ✅ Built |
 | **Calendar** | One calendar that merges campus events (posted by staff) with your own weekly classes. Week, month and list views, with layers you can switch on and off. | ✅ Built |
-| **Boards** | A discussion board per course: threads, replies and file attachments. | Week 6 |
+| **Boards** | A discussion board per course. Start threads, reply, and attach files to replies (attachments also appear in the library, tagged `#board`). Staff replies are stamped so answers stand out. Authors and staff can delete. | ✅ Built |
 
 ### Stretch goals (only if the core is done early)
 
@@ -81,7 +81,7 @@ Settings live in [`config.py`](config.py). For anything other than local develop
 pytest -q
 ```
 
-184 tests cover models, every route, permissions (logged out, student, staff), bad input and the upload safety rules. Tests use an in-memory database and a temporary upload folder, so they never touch your real data.
+226 tests cover models, every route, permissions (logged out, student, staff), bad input and the upload safety rules. Tests use an in-memory database and a temporary upload folder, so they never touch your real data.
 
 ## Tech stack
 
@@ -103,7 +103,7 @@ Browser (Jinja pages + FullCalendar)
         ▼
 ┌───────────────── Flask app: create_app() ─────────────────┐
 │  auth/          resources/         calendar/     forum/   │   one Blueprint per feature
-│  /auth/...      /courses/...       /calendar/... (Week 6) │
+│  /auth/...      /courses/...       /calendar/... /board/  │
 └──────────────────────────┬────────────────────────────────┘
              SQLAlchemy    │   saved files
              ┌─────────────┴─────────────┐
@@ -143,6 +143,9 @@ app/
     links.py           "Google Drive", "YouTube"... labels for saved links
   calendar/          campus events, weekly classes, JSON feeds
     feeds.py           converts events/classes to FullCalendar's format
+  forum/             course boards: threads, replies, attachments
+  permissions.py     who may post, edit and delete (shared by library and boards)
+  template_filters.py  "3 files", "3 hours ago" helpers for templates
   templates/         Jinja pages, one folder per Blueprint
   static/            orbit.css, calendar.js
 tests/               pytest, one file per area
@@ -174,8 +177,8 @@ requirements.txt
 | 3 | 7 | Courses, upload and save links (first prototype) | ✅ Done |
 | 4 | 8 | Browse, filter, search, official badge, edit/delete | ✅ Done |
 | 5 | 9 | **Midpoint checkpoint.** Calendar: events + classes | ✅ Done |
-| 6 | 10 | Boards. **Feature freeze** | Next |
-| 7 | 11 | Testing, error handling, upload limits | Ongoing (184 tests) |
+| 6 | 10 | Boards. **Feature freeze** | ✅ Done; features frozen |
+| 7 | 11 | Testing, error handling, upload limits | Ongoing (226 tests) |
 | 8 | 12 | Bug fixes, cleanup, polish, demo seed data | |
 | 9 | 13 | Documentation | |
 | 10 | 14 | Demo prep and buffer | |
@@ -189,6 +192,8 @@ requirements.txt
 - **Rules in the database as well as the forms.** Forms give friendly error messages; database constraints (unique emails, file *or* link, end after start) are the safety net if a bug ever skips a form check.
 - **Weekly classes are stored once.** A class slot is a weekday plus times, and FullCalendar repeats it every week, instead of storing a row for every date.
 - **Staff promotion is a terminal command.** An admin web page would need its own permission checks; a command only someone with server access can run is simpler and safer.
+- **Board attachments are library resources.** A file attached to a reply is saved as a `Resource` by the library's upload code, so it gets the same type allow-list, size limit and safe file names, and stays findable in the library. Deleting the reply removes the file; deleting the file from the library keeps the reply.
+- **Relative times on the boards.** "3 hours ago" is worked out from UTC timestamps, so it's right for every viewer without converting time zones.
 - **Own stylesheet instead of a CSS framework.** A "campus catalogue" look (paper, ink, index cards, rubber stamps) that is specific to ORBIT; colours and fonts are variables at the top of `orbit.css`.
 
 ## Author

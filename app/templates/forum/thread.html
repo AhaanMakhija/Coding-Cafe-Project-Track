@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "_form.html" import field %}
+{% block title %}{{ thread.title }} · {{ thread.course.code }}{% endblock %}
+
+{# One message: the opening post or a reply. Staff authors get a stamp. #}
+{% macro message(author, created_at, body, anchor=None, attachment=None, delete_url=None) %}
+  <article class="message" {% if anchor %}id="{{ anchor }}"{% endif %}>
+    <div class="avatar avatar-sm" aria-hidden="true">{{ author.name[:1] | upper }}</div>
+    <div class="message-body">
+      <div class="message-head">
+        <strong>{{ author.name }}</strong>
+        {% if author.is_staff %}<span class="stamp">Staff</span>{% endif %}
+        <span class="res-meta">{{ created_at | timeago }}</span>
+      </div>
+      {# pre-line keeps the writer's line breaks; Jinja still escapes any HTML. #}
+      <p class="message-text">{{ body }}</p>
+      {% if attachment %}
+        <a class="attachment" href="{{ url_for('resources.download_resource', course_id=attachment.course_id, resource_id=attachment.id) }}">
+          <span class="res-type">{{ attachment.file_path.rsplit(".", 1)[-1] }}</span> {{ attachment.title }}
+        </a>
+      {% endif %}
+      {% if delete_url %}
+        <form class="inline-form message-delete" method="post" action="{{ delete_url }}"
+              onsubmit="return confirm('Delete this? This cannot be undone.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+        </form>
+      {% endif %}
+    </div>
+  </article>
+{% endmacro %}
+
+{% block content %}
+  <div class="page-head">
+    <p class="eyebrow">
+      <a href="{{ url_for('resources.course_detail', course_id=thread.course_id) }}">{{ thread.course.code }}</a>
+      <span class="dot">●</span>
+      <a href="{{ url_for('forum.board', course_id=thread.course_id) }}">Board</a>
+    </p>
+    <h1>{{ thread.title }}</h1>
+  </div>
+
+  <div class="thread">
+    {{ message(thread.author, thread.created_at, thread.body,
+               delete_url=url_for('forum.delete_thread', thread_id=thread.id) if can_delete(current_user, thread)) }}
+
+    <div class="section-head">
+      <h2>{{ thread.reply_count | plural("reply", "replies") }}</h2>
+    </div>
+
+    {% for post in thread.posts %}
+      {{ message(post.author, post.created_at, post.body, anchor="post-" ~ post.id, attachment=post.attachment,
+                 delete_url=url_for('forum.delete_post', post_id=post.id) if can_delete(current_user, post)) }}
+    {% else %}
+      <p class="count">No replies yet.</p>
+    {% endfor %}
+
+    {% if can_reply %}
+      <form class="panel reply-form" method="post" enctype="multipart/form-data" novalidate
+            action="{{ url_for('forum.reply', thread_id=thread.id) }}#reply" id="reply">
+        {{ form.hidden_tag() }}
+        {{ field(form.body) }}
+        {{ field(form.file, hint="PDF, DOCX, PPTX, PNG or JPG, up to " ~ max_upload_mb ~ " MB. It's also added to the course library, tagged #board.") }}
+        {{ form.submit(class="btn") }}
+      </form>
+    {% else %}
+      <p class="filter-note">Join {{ thread.course.code }} to reply.</p>
+    {% endif %}
+  </div>
+{% endblock %}

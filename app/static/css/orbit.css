@@ -350,6 +350,38 @@ a.tag:hover { color: var(--paper); background: var(--ink); }
   font: 600 1.6rem var(--font-display); background: var(--paper-sunk);
 }
 
+/* ---------- Board ---------- */
+
+.thread-list { list-style: none; margin: 0; padding: 0; }
+.thread-row {
+  display: grid; grid-template-columns: 90px 1fr; gap: 20px; align-items: start;
+  padding: 16px 0; border-bottom: 1px solid var(--line-soft);
+}
+.reply-count {
+  font: .7rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase; text-align: center;
+  border: 1.5px solid var(--ink); padding: 6px 4px; background: var(--paper-raised);
+}
+.reply-count strong { display: block; font: 600 1.3rem var(--font-display); letter-spacing: 0; }
+.reply-count-zero { border-style: dashed; color: var(--ink-muted); }
+
+.thread { max-width: 760px; }
+.message {
+  display: grid; grid-template-columns: 44px 1fr; gap: 16px;
+  padding: 18px 0; border-bottom: 1px solid var(--line-soft);
+}
+.avatar-sm { width: 44px; height: 44px; font-size: 1.1rem; }
+.message-head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.message-head .res-meta { margin: 0; }
+/* Keep the writer's line breaks without allowing any HTML. */
+.message-text { white-space: pre-line; margin: 8px 0 0; overflow-wrap: anywhere; }
+.attachment {
+  display: inline-flex; gap: 10px; align-items: center; margin-top: 12px;
+  color: var(--ink); text-decoration: none; font-weight: 500;
+}
+.attachment:hover { color: var(--accent-deep); text-decoration: underline; }
+.message-delete { display: block; margin-top: 10px; }
+.reply-form { margin-top: 28px; }
+
 /* ---------- Calendar ---------- */
 
 .field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
