@@ -9,27 +9,11 @@ from werkzeug.utils import secure_filename
 from app.auth.decorators import staff_required
 from app.extensions import db
 from app.models import RESOURCE_TYPES, Course, Post, Resource, split_tags
+from app.permissions import can_delete_resource, can_edit_resource, can_participate
 from app.resources import bp
 from app.resources.forms import CourseForm, EditResourceForm, ResourceForm
 from app.resources.queries import ResourceFilters, filter_resources
 from app.resources.storage import delete_upload, file_extension, save_upload
-
-
-# --- Permission rules, in one place so routes and templates agree ---------------
-
-def can_add_resources(user, course):
-    """Students must join a course before adding to it; staff can add anywhere."""
-    return user.is_staff or course in user.courses
-
-
-def can_edit_resource(user, resource):
-    """Only the person who added a resource can change its details."""
-    return resource.uploader_id == user.id
-
-
-def can_delete_resource(user, resource):
-    """The uploader can delete their own; staff can remove anything (e.g. wrong or copyrighted files)."""
-    return resource.uploader_id == user.id or user.is_staff
 
 
 def get_course_resource_or_404(course_id, resource_id):
@@ -69,7 +53,7 @@ def course_detail(course_id):
         "resources/course_detail.html", course=course,
         resources=filter_resources(course, filters), filters=filters,
         resource_types=RESOURCE_TYPES,
-        can_add=can_add_resources(current_user, course),
+        can_add=can_participate(current_user, course),
         can_edit=can_edit_resource, can_delete=can_delete_resource,
     )
 
@@ -78,7 +62,7 @@ def course_detail(course_id):
 @login_required
 def new_resource(course_id):
     course = db.get_or_404(Course, course_id)
-    if not can_add_resources(current_user, course):
+    if not can_participate(current_user, course):
         abort(403)
 
     form = ResourceForm()
