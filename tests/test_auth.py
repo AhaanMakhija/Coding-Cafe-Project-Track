@@ -5,6 +5,7 @@ import pytest
 from app.auth.routes import is_safe_next_url
 from app.extensions import db
 from app.models import User
+from conftest import log_in
 
 PASSWORD = "correct-horse"
 
@@ -148,3 +149,17 @@ def test_logout_ends_session(client, student):
 def test_logout_rejects_get(client, student):
     login(client)
     assert client.get("/auth/logout").status_code == 405
+
+
+def test_login_page_loads(client):
+    response = client.get("/auth/login")
+    assert response.status_code == 200
+    assert b"Keep me logged in" in response.data
+
+
+@pytest.mark.parametrize("url", ["/auth/login", "/auth/signup"])
+def test_logged_in_user_is_sent_home_from_login_and_signup(client, make_user, url):
+    log_in(client, make_user())
+    response = client.get(url)
+    assert response.status_code == 302
+    assert response.headers["Location"] == "/"

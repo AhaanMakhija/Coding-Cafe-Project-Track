@@ -1,6 +1,8 @@
 """Shared pytest fixtures: every test gets a fresh app built with TestConfig."""
 
 import pytest
+from flask import g
+from flask.testing import FlaskClient
 
 from app import create_app
 from app.extensions import db
@@ -10,6 +12,20 @@ from config import TestConfig
 TEST_PASSWORD = "correct-horse"
 
 
+class CookieOnlyClient(FlaskClient):
+    """A test client that finds the logged-in user from the session cookie on every request.
+
+    The app fixture keeps one app context open for the whole test, and Flask-Login
+    caches the current user in `g` on that context. Without clearing it, requests
+    after log_in() would reuse the cached user and never test the real path a
+    browser takes: cookie -> load_user() -> User.
+    """
+
+    def open(self, *args, **kwargs):
+        g.pop("_login_user", None)
+        return super().open(*args, **kwargs)
+
+
 @pytest.fixture
 def app(tmp_path):
     """A fresh app with empty tables; everything is wiped after the test.
@@ -17,11 +33,13 @@ def app(tmp_path):
     Uploads go to pytest's temporary folder, never the real uploads/ folder.
     """
     app = create_app(TestConfig)
+    app.test_client_class = CookieOnlyClient
     app.config["UPLOAD_FOLDER"] = str(tmp_path / "uploads")
     with app.app_context():
         yield app
         db.session.remove()
         db.drop_all()
+        db.engine.dispose()  # close the SQLite connection (avoids ResourceWarning)
 
 
 @pytest.fixture
