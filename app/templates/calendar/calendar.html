@@ -63,7 +63,7 @@
         <ul class="slot-list">
           {% for e in events %}
             <li>
-              <span class="slot-day slot-date">{{ e.start_at.strftime("%d %b") }}</span>
+              <span class="slot-day {{ 'slot-course' if e.course else 'slot-date' }}">{{ e.start_at.strftime("%d %b") }}</span>
               <div>
                 <a href="{{ url_for('calendar.event_detail', event_id=e.id) }}"><strong>{% if e.course %}{{ e.course.code }}: {% endif %}{{ e.title }}</strong></a>
                 <div class="res-meta">{{ e.start_at.strftime("%a") }} {{ e.start_at | clock }}{% if e.location %} · {{ e.location }}{% endif %}</div>

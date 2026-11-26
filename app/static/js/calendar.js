@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", () => {
     nowIndicator: true,
     height: "auto",
     slotMinTime: "07:00:00",
-    slotMaxTime: "22:00:00",
+    slotMaxTime: "24:00:00",     // late deadlines (e.g. 11 PM) must still show
     allDaySlot: false,
     // 12-hour times with AM/PM everywhere, matching the rest of ORBIT ("2:30 PM").
     // meridiem must be set, or FullCalendar shortens "2:30 PM" to "2:30p" or drops it.

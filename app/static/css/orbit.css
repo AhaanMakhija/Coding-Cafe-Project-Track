@@ -171,7 +171,7 @@ main.wrap { padding-top: 40px; padding-bottom: 80px; }
 }
 .field input[type="text"], .field input[type="email"], .field input[type="password"],
 .field input[type="url"], .field input[type="search"], .field select, .field textarea,
-.field input[type="datetime-local"], .field input[type="time"],
+.field input[type="date"],
 .toolbar input, .toolbar select {
   width: 100%;
   font: 1rem var(--font-body); color: var(--ink);
@@ -210,6 +210,7 @@ main.wrap { padding-top: 40px; padding-bottom: 80px; }
    :has() checks which radio button is selected. */
 .resource-form:has(input[name="kind"][value="file"]:checked) .only-link { display: none; }
 .resource-form:has(input[name="kind"][value="link"]:checked) .only-file { display: none; }
+.signup-form:not(:has(input[name="account_type"][value="admin"]:checked)) .only-admin { display: none; }
 
 /* ---------- Auth pages: split layout ---------- */
 
@@ -379,6 +380,21 @@ a.tag:hover { color: var(--paper); background: var(--ink); }
 .message-delete { display: block; margin-top: 10px; }
 .reply-form { margin-top: 28px; }
 
+/* ---------- Admin ---------- */
+
+.mono { font-family: var(--font-mono); font-size: .88rem; }
+.toolbar-admin { grid-template-columns: 2fr 1fr auto; }
+/* Wide tables scroll inside their box on phones instead of widening the page. */
+.table-wrap { overflow-x: auto; margin-top: 16px; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  font: 600 .7rem var(--font-mono); letter-spacing: .08em; text-transform: uppercase;
+  text-align: left; padding: 10px 12px 10px 0; border-bottom: 1.5px solid var(--line);
+}
+.data-table td { padding: 14px 12px 14px 0; border-bottom: 1px solid var(--line-soft); vertical-align: middle; }
+.data-table .res-title { font-size: 1.05rem; }
+.admin-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: start; margin-top: 8px; }
+
 /* ---------- Calendar ---------- */
 
 .field-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -403,7 +419,9 @@ a.tag:hover { color: var(--paper); background: var(--ink); }
   display: grid; grid-template-columns: 64px 1fr; gap: 16px; align-items: center;
   padding: 12px 0; border-bottom: 1px solid var(--line-soft);
 }
-.slot-course { background: var(--plum); }
+.slot-day.slot-course { background: var(--plum); }  /* two classes beat .slot-day, defined later */
+/* FullCalendar writes "3:00pm"; the rest of ORBIT writes "3:00 PM". */
+.fc-event-time, .fc-timegrid-slot-label-cushion, .fc-list-event-time { text-transform: uppercase; }
 
 .section-head-tight { margin-top: 0; margin-bottom: 4px; }
 .section-head-tight.spaced { margin-top: 32px; }
@@ -465,7 +483,8 @@ a.tag:hover { color: var(--paper); background: var(--ink); }
   .modules { grid-template-columns: 1fr; }
   .module { border-right: 0; border-bottom: 1.5px solid var(--line); }
   .module:last-child { border-bottom: 0; }
-  .cal-layout { grid-template-columns: 1fr; }
+  .cal-layout, .admin-layout { grid-template-columns: 1fr; }
+  .toolbar-admin { grid-template-columns: 1fr auto; }
   .field-pair { grid-template-columns: 1fr; gap: 0; }
   .fc .fc-toolbar { flex-direction: column; gap: 8px; }
   .toolbar { grid-template-columns: 1fr 1fr; }
@@ -480,5 +499,6 @@ a.tag:hover { color: var(--paper); background: var(--ink); }
   .nav a { padding: 6px 7px; font-size: .9rem; white-space: nowrap; }
   .nav a:first-child { padding-left: 0; }
   .nav form { margin-left: auto; }
+  .nav button { white-space: nowrap; }
   .user-chip { display: none; }
 }
