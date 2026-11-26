@@ -8,7 +8,7 @@ from werkzeug.utils import secure_filename
 
 from app.auth.decorators import staff_required
 from app.extensions import db
-from app.models import RESOURCE_TYPES, Course, Post, Resource, split_tags
+from app.models import RESOURCE_TYPES, ClassSlot, Course, Post, Resource, split_tags
 from app.permissions import can_delete_resource, can_edit_resource, can_participate
 from app.resources import bp
 from app.resources.forms import CourseForm, EditResourceForm, ResourceForm
@@ -190,6 +190,11 @@ def leave_course(course_id):
     course = db.get_or_404(Course, course_id)
     if course in current_user.courses:
         current_user.courses.remove(course)
+        # Your weekly classes for this course would otherwise stay on your calendar.
+        removed = db.session.execute(
+            db.delete(ClassSlot).filter_by(user_id=current_user.id, course_id=course.id)
+        ).rowcount
         db.session.commit()
-        flash(f"You left {course.code}.", "info")
+        note = f" and removed its {removed} weekly class{'es' if removed != 1 else ''}" if removed else ""
+        flash(f"You left {course.code}{note}.", "info")
     return redirect(url_for("resources.course_detail", course_id=course.id))

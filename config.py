@@ -27,6 +27,13 @@ class Config:
     # Flask rejects any request body larger than this (10 MB) before our code runs.
     MAX_CONTENT_LENGTH = 10 * 1024 * 1024
 
+    # Login cookies: hidden from JavaScript, and not sent when another site
+    # submits a form to ORBIT (a second guard against CSRF, after the tokens).
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+    REMEMBER_COOKIE_HTTPONLY = True
+    REMEMBER_COOKIE_SAMESITE = "Lax"
+
 
 class TestConfig(Config):
     """Settings for pytest: an in-memory database that vanishes after each test."""

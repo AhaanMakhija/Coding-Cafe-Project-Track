@@ -1,9 +1,11 @@
 """Tests for courses, enrollment and the staff_required decorator."""
 
+from datetime import time
+
 import pytest
 
 from app.extensions import db
-from app.models import Course
+from app.models import ClassSlot, Course
 from conftest import log_in
 
 
@@ -112,6 +114,23 @@ def test_leave_course(client, student, course):
     client.post(f"/courses/{course.id}/join")
     client.post(f"/courses/{course.id}/leave")
     assert course not in student.courses
+
+
+def test_leaving_removes_only_that_courses_classes(client, student, course):
+    other = Course(code="MA102", name="Calculus", term="Fall 2026")
+    student.courses += [course, other]
+    db.session.add_all([
+        ClassSlot(user=student, course=course, weekday=0, start_time=time(10), end_time=time(11)),
+        ClassSlot(user=student, course=course, weekday=2, start_time=time(10), end_time=time(11)),
+        ClassSlot(user=student, course=other, weekday=1, start_time=time(9), end_time=time(10)),
+    ])
+    db.session.commit()
+    log_in(client, student)
+
+    response = client.post(f"/courses/{course.id}/leave", follow_redirects=True)
+    assert "You left CS101 and removed its 2 weekly classes." in response.get_data(as_text=True)
+    remaining = db.session.scalars(db.select(ClassSlot)).all()
+    assert [s.course.code for s in remaining] == ["MA102"]
 
 
 def test_leave_course_not_joined_is_harmless(client, student, course):

@@ -23,6 +23,26 @@ def test_plural_filter(app, count, args, expected):
     assert app.jinja_env.filters["plural"](count, *args) == expected
 
 
+def test_security_headers_on_every_response(client):
+    for url in ("/", "/no-such-page", "/static/css/orbit.css"):
+        headers = client.get(url).headers
+        assert headers["X-Content-Type-Options"] == "nosniff"
+        assert headers["X-Frame-Options"] == "DENY"
+        assert headers["Referrer-Policy"] == "same-origin"
+
+
+def test_session_cookie_is_httponly_and_samesite(client, make_user):
+    user = make_user()
+    response = client.post("/auth/login", data={"email": user.email, "password": "correct-horse"})
+    cookie = response.headers["Set-Cookie"]
+    assert "HttpOnly" in cookie and "SameSite=Lax" in cookie
+
+
+def test_favicon_is_linked(client):
+    assert b'rel="icon" href="/static/favicon.svg"' in client.get("/").data
+    assert client.get("/static/favicon.svg").status_code == 200
+
+
 def test_home_page_loads(client):
     response = client.get("/")
     assert response.status_code == 200
