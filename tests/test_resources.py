@@ -102,7 +102,7 @@ def test_student_uploads_pdf(app, client, student, course):
 
     page = client.get(f"/courses/{course.id}").data
     assert b"Week 1 notes" in page
-    assert b"Unofficial" in page
+    assert b'class="stamp">Official' not in page  # only staff uploads are stamped
 
 
 def test_staff_upload_is_official(client, staff, course):

@@ -273,10 +273,6 @@ main.wrap { padding-top: 40px; padding-bottom: 80px; }
   background: rgba(255, 255, 255, .5);
 }
 .stamp-teal { color: var(--teal); }
-.stamp-quiet {
-  color: var(--ink-muted); border-style: dashed; border-width: 1.5px;
-  transform: none; font-weight: 500;
-}
 .tag {
   display: inline-block; font: .76rem var(--font-mono);
   color: var(--ink-muted); background: var(--paper-sunk);
@@ -468,6 +464,12 @@ a.tag:hover { color: var(--paper); background: var(--ink); }
   .res-row { grid-template-columns: 1fr; gap: 8px; }
   .res-type { width: fit-content; }
   .res-side { align-items: flex-start; flex-direction: row; flex-wrap: wrap; }
-  .nav { margin-left: 0; width: 100%; padding-bottom: 8px; }
+  /* A tall sticky header would cover the page on a phone, so it scrolls away. */
+  .site-header { position: static; }
+  .site-header .wrap { gap: 4px; min-height: 0; padding-top: 10px; }
+  .nav { margin-left: 0; width: 100%; padding-bottom: 8px; gap: 0; flex-wrap: nowrap; }
+  .nav a { padding: 6px 7px; font-size: .9rem; white-space: nowrap; }
+  .nav a:first-child { padding-left: 0; }
+  .nav form { margin-left: auto; }
   .user-chip { display: none; }
 }

@@ -4,6 +4,6 @@
     <span class="course-code">{{ course.code }}</span>
     {% if course in current_user.courses %}<span class="stamp stamp-teal">Joined</span>{% endif %}
     <span class="course-name">{{ course.name }}</span>
-    <span class="course-meta">{{ course.term }} · {{ course.resources | length | plural("file") }} · {{ course.students | length }} enrolled</span>
+    <span class="course-meta">{{ course.term }} · {{ course.resources | length | plural("resource") }} · {{ course.students | length }} enrolled</span>
   </a>
 {% endmacro %}

@@ -84,8 +84,8 @@
             {% endfor %}
           </div>
           <div class="res-side">
-            {% if r.is_official %}<span class="stamp">Official</span>
-            {% else %}<span class="stamp stamp-quiet">Unofficial</span>{% endif %}
+            {# Only official items are stamped; "added by" already names student uploaders. #}
+            {% if r.is_official %}<span class="stamp">Official</span>{% endif %}
             {% if can_edit(current_user, r) or can_delete(current_user, r) %}
               <div class="res-actions">
                 {% if can_edit(current_user, r) %}
