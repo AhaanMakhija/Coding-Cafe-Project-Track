@@ -23,7 +23,7 @@ def test_seed_fills_every_table(app):
 
     assert count(User) == 5
     assert count(Course) == 4
-    assert count(Event) == 5
+    assert count(Event) == 15  # 4 campus-wide + 11 course events
     assert count(ClassSlot) == 5
     assert count(Thread) == 4
     assert count(Post) == 4

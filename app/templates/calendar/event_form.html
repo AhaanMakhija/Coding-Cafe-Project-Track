@@ -4,17 +4,19 @@
 
 {% block content %}
   <div class="page-head">
-    <p class="eyebrow">Staff <span class="dot">●</span> Campus calendar</p>
-    <h1>{{ "Edit event" if event else "New campus event" }}</h1>
-    <p class="lede">Everyone sees campus events on their calendar.</p>
+    <p class="eyebrow">Calendar</p>
+    <h1>{{ "Edit event" if event else "Add an event" }}</h1>
+    <p class="lede">Course events show on the calendar of everyone in that course{% if current_user.is_staff %}; campus-wide events show for everyone{% endif %}.</p>
   </div>
 
   <form class="panel panel-narrow" method="post" novalidate>
     {{ form.hidden_tag() }}
     {{ field(form.title) }}
+    {{ field(form.course_id) }}
+    {{ field(form.day) }}
     <div class="field-pair">
-      {{ field(form.start_at) }}
-      {{ field(form.end_at) }}
+      {{ field(form.start_time) }}
+      {{ field(form.end_time) }}
     </div>
     {{ field(form.location, hint=form.location.description) }}
     {{ field(form.description) }}

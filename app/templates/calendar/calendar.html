@@ -6,12 +6,12 @@
     <div>
       <p class="eyebrow">Timetable <span class="dot">●</span> {{ slots | length | plural("weekly class", "weekly classes") }}</p>
       <h1>Your week</h1>
-      <p class="lede">Campus events and your own classes, on one calendar.</p>
+      <p class="lede">Campus events, your courses' events and your own classes, on one calendar.</p>
     </div>
     <div class="btn-row">
       <a class="btn" href="{{ url_for('calendar.new_class') }}">Add a class</a>
-      {% if current_user.is_staff %}
-        <a class="btn btn-ghost" href="{{ url_for('calendar.new_event') }}">New campus event</a>
+      {% if can_add_events %}
+        <a class="btn btn-ghost" href="{{ url_for('calendar.new_event') }}">Add an event</a>
       {% endif %}
     </div>
   </div>
@@ -21,10 +21,12 @@
       <fieldset class="layers">
         <legend class="field-label">Show</legend>
         <label class="layer layer-campus"><input type="checkbox" data-layer="campus" checked> Campus events</label>
+        <label class="layer layer-course"><input type="checkbox" data-layer="course" checked> Course events</label>
         <label class="layer layer-classes"><input type="checkbox" data-layer="classes" checked> My classes</label>
       </fieldset>
       <div id="calendar" class="panel cal-panel"
            data-events-url="{{ url_for('calendar.events_feed') }}"
+           data-course-events-url="{{ url_for('calendar.course_events_feed') }}"
            data-classes-url="{{ url_for('calendar.classes_feed') }}">
         <noscript>The calendar needs JavaScript. Your classes and upcoming events are listed alongside.</noscript>
       </div>
@@ -41,7 +43,7 @@
               <span class="slot-day">{{ s.weekday_name[:3] }}</span>
               <div>
                 <a href="{{ url_for('resources.course_detail', course_id=s.course_id) }}"><strong>{{ s.course.code }}</strong></a>
-                <div class="res-meta">{{ s.start_time.strftime("%H:%M") }}–{{ s.end_time.strftime("%H:%M") }}{% if s.room %} · Room {{ s.room }}{% endif %}</div>
+                <div class="res-meta">{{ s.start_time | clock }}–{{ s.end_time | clock }}{% if s.room %} · Room {{ s.room }}{% endif %}</div>
               </div>
               <form class="inline-form" method="post" action="{{ url_for('calendar.delete_class', slot_id=s.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -63,14 +65,14 @@
             <li>
               <span class="slot-day slot-date">{{ e.start_at.strftime("%d %b") }}</span>
               <div>
-                <a href="{{ url_for('calendar.event_detail', event_id=e.id) }}"><strong>{{ e.title }}</strong></a>
-                <div class="res-meta">{{ e.start_at.strftime("%a %H:%M") }}{% if e.location %} · {{ e.location }}{% endif %}</div>
+                <a href="{{ url_for('calendar.event_detail', event_id=e.id) }}"><strong>{% if e.course %}{{ e.course.code }}: {% endif %}{{ e.title }}</strong></a>
+                <div class="res-meta">{{ e.start_at.strftime("%a") }} {{ e.start_at | clock }}{% if e.location %} · {{ e.location }}{% endif %}</div>
               </div>
             </li>
           {% endfor %}
         </ul>
       {% else %}
-        <p class="count">No upcoming campus events.</p>
+        <p class="count">No upcoming events.</p>
       {% endif %}
     </aside>
   </div>

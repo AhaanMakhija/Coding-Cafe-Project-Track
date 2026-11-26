@@ -55,15 +55,26 @@ RESOURCES = [
     ("PH103", "Lab report template", "other", "lab", "kabir", "lab_template.pdf", 9),
 ]
 
-# (title, day offset from today, start hour, hours long, location, description)
+# (course code or None for campus-wide, title, day offset from today, start hour,
+#  hours long, venue, description, added by)
 EVENTS = [
-    ("Hackathon kickoff", 1, 17, 2, "Main auditorium",
-     "Form teams of up to four.\nPizza from 18:30."),
-    ("Guest talk: building for India's next billion users", 3, 15, 1, "Lecture hall 2",
-     "Open to all years. Questions at the end."),
-    ("Midterm review: CS101", 5, 11, 2, "Room 204", "Bring your questions on loops and functions."),
-    ("Career fair", 9, 10, 6, "Sports complex", "Bring printed CVs."),
-    ("Founders' Day", 14, 9, 8, "Campus lawn", ""),
+    (None, "Hackathon kickoff", 1, 17, 2, "Main auditorium",
+     "Form teams of up to four.\nPizza from 6:30 PM.", "meera"),
+    (None, "Guest talk: building for India's next billion users", 3, 15, 1, "Lecture hall 2",
+     "Open to all years. Questions at the end.", "arjun"),
+    (None, "Career fair", 9, 10, 6, "Sports complex", "Bring printed CVs.", "meera"),
+    (None, "Founders' Day", 14, 9, 8, "Campus lawn", "", "arjun"),
+    ("CS101", "Lab 3 due", 2, 23, 1, "", "Submit on the course portal before midnight.", "meera"),
+    ("CS101", "Midterm review session", 5, 11, 2, "Room 204", "Bring your questions on loops and functions.", "meera"),
+    ("CS101", "Midterm exam", 8, 10, 2, "Lecture hall 1", "Closed book. One A4 sheet of notes allowed.", "meera"),
+    ("CS101", "Study group: recursion", 4, 18, 2, "Library room 3", "Bring your laptop.", "riya"),
+    ("MA102", "Quiz 2", 3, 9, 1, "Room 112", "Covers integration by parts.", "arjun"),
+    ("MA102", "Problem set 4 due", 6, 23, 1, "", "", "arjun"),
+    ("MA102", "Office hours", 1, 14, 1, "Faculty block 210", "Drop in with questions.", "arjun"),
+    ("PH103", "Lab 3 report due", 4, 17, 1, "", "Use the lab report template in the library.", "arjun"),
+    ("PH103", "Midterm exam", 10, 14, 2, "Lecture hall 1", "", "arjun"),
+    ("DT104", "Prototype showcase", 7, 15, 2, "Design studio", "Each team gets five minutes.", "meera"),
+    ("DT104", "Field visit: local makerspace", 12, 9, 4, "Meet at the main gate", "", "meera"),
 ]
 
 # Riya's weekly timetable: (course, weekday 0 = Monday, start, end, room)
@@ -159,10 +170,11 @@ def seed(password):
 
     # Events are local wall-clock times, like the ones staff type into the form.
     today = date.today()
-    for title, day, hour, length, location, description in EVENTS:
+    for code, title, day, hour, length, location, description, who in EVENTS:
         start = datetime.combine(today + timedelta(days=day), time(hour))
         db.session.add(Event(title=title, start_at=start, end_at=start + timedelta(hours=length),
-                             location=location, description=description, creator=users["meera"]))
+                             location=location, description=description, creator=users[who],
+                             course=courses[code] if code else None))
 
     for code, weekday, start, end, room in RIYA_CLASSES:
         db.session.add(ClassSlot(user=users["riya"], course=courses[code], weekday=weekday,

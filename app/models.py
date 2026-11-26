@@ -95,6 +95,7 @@ class Course(db.Model):
         "Resource", back_populates="course", order_by="Resource.created_at.desc()"
     )
     class_slots = db.relationship("ClassSlot", back_populates="course")
+    events = db.relationship("Event", back_populates="course", order_by="Event.start_at")
     threads = db.relationship(
         "Thread", back_populates="course", order_by="Thread.created_at.desc()"
     )
@@ -155,7 +156,11 @@ class Resource(db.Model):
 
 
 class Event(db.Model):
-    """A one-off campus event posted by staff, shown on everyone's calendar.
+    """A one-off event: campus-wide (no course) or belonging to one course.
+
+    Campus events are posted by staff and shown to everyone. Course events
+    (exams, deadlines, study groups) are added by the course's members and
+    shown to people who joined that course.
 
     Named start_at/end_at because END is a reserved word in SQL; the calendar
     API will send them to FullCalendar as "start" and "end".
@@ -170,8 +175,14 @@ class Event(db.Model):
 
     creator_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     creator = db.relationship("User")
+    course_id = db.Column(db.Integer, db.ForeignKey("course.id"))  # empty = campus-wide
+    course = db.relationship("Course", back_populates="events")
 
     __table_args__ = (db.CheckConstraint("end_at > start_at", name="event_ends_after_start"),)
+
+    @property
+    def is_campus(self):
+        return self.course_id is None
 
     def __repr__(self):
         return f"<Event {self.title!r} {self.start_at:%Y-%m-%d %H:%M}>"

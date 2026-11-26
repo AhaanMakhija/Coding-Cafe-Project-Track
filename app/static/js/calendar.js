@@ -9,8 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // One event source per layer. FullCalendar calls each URL with ?start=&end=
   // for the dates on screen and draws whatever JSON comes back.
   const sources = {
-    campus:  { id: "campus",  url: el.dataset.eventsUrl,  color: "#1f5a63", textColor: "#fbf8f2" },
-    classes: { id: "classes", url: el.dataset.classesUrl, color: "#e2552d", textColor: "#fbf8f2" },
+    campus:  { id: "campus",  url: el.dataset.eventsUrl,       color: "#1f5a63", textColor: "#fbf8f2" },
+    course:  { id: "course",  url: el.dataset.courseEventsUrl, color: "#6b4f9e", textColor: "#fbf8f2" },
+    classes: { id: "classes", url: el.dataset.classesUrl,      color: "#e2552d", textColor: "#fbf8f2" },
   };
 
   const calendar = new FullCalendar.Calendar(el, {
@@ -21,9 +22,10 @@ document.addEventListener("DOMContentLoaded", () => {
     slotMinTime: "07:00:00",
     slotMaxTime: "22:00:00",
     allDaySlot: false,
-    // 24-hour times everywhere, matching the rest of ORBIT ("14:00", not "2:00").
-    eventTimeFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
-    slotLabelFormat: { hour: "2-digit", minute: "2-digit", hour12: false },
+    // 12-hour times with AM/PM everywhere, matching the rest of ORBIT ("2:30 PM").
+    // meridiem must be set, or FullCalendar shortens "2:30 PM" to "2:30p" or drops it.
+    eventTimeFormat: { hour: "numeric", minute: "2-digit", meridiem: "short", hour12: true },
+    slotLabelFormat: { hour: "numeric", minute: "2-digit", meridiem: "short", hour12: true },
     headerToolbar: {
       left: "prev,next today",
       center: "title",

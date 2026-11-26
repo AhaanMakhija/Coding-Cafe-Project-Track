@@ -1,5 +1,7 @@
 """Routes for courses, enrollment and resources. All URLs here start with /courses."""
 
+from datetime import datetime
+
 from flask import (
     abort, current_app, flash, redirect, render_template, request, send_from_directory, url_for,
 )
@@ -49,8 +51,10 @@ def new_course():
 def course_detail(course_id):
     course = db.get_or_404(Course, course_id)
     filters = ResourceFilters.from_args(request.args)
+    # course.events is sorted by start time; events are local times, so compare with local now.
+    upcoming = [e for e in course.events if e.end_at >= datetime.now()][:5]
     return render_template(
-        "resources/course_detail.html", course=course,
+        "resources/course_detail.html", course=course, upcoming_events=upcoming,
         resources=filter_resources(course, filters), filters=filters,
         resource_types=RESOURCE_TYPES,
         can_add=can_participate(current_user, course),

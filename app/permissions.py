@@ -20,6 +20,18 @@ def can_delete_resource(user, resource):
     return resource.uploader_id == user.id or user.is_staff
 
 
+def can_add_event(user, course):
+    """Campus-wide events (course None) are staff only; course events are for the course's members."""
+    if course is None:
+        return user.is_staff
+    return can_participate(user, course)
+
+
+def can_manage_event(user, event):
+    """Edit or delete an event: whoever created it, or staff."""
+    return event.creator_id == user.id or user.is_staff
+
+
 def can_delete_post(user, post_or_thread):
     """Authors can delete their own threads and replies; staff can moderate any of them."""
     return post_or_thread.author_id == user.id or user.is_staff

@@ -31,14 +31,17 @@ def to_fc_weekday(weekday):
 
 
 def event_to_fc(event):
-    """One campus event as a FullCalendar event. Clicking it opens the event page."""
+    """One event as a FullCalendar event. Clicking it opens the event page.
+
+    Course events are titled "CS101: Midterm" so you can tell courses apart.
+    """
     return {
         "id": f"event-{event.id}",
-        "title": event.title,
+        "title": f"{event.course.code}: {event.title}" if event.course else event.title,
         "start": event.start_at.isoformat(timespec="minutes"),
         "end": event.end_at.isoformat(timespec="minutes"),
         "url": url_for("calendar.event_detail", event_id=event.id),
-        "extendedProps": {"layer": "campus", "location": event.location},
+        "extendedProps": {"layer": "course" if event.course else "campus", "location": event.location},
     }
 
 

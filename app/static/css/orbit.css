@@ -13,6 +13,7 @@
   --accent: #e2552d;
   --accent-deep: #b93d1a;
   --teal: #1f5a63;
+  --plum: #6b4f9e;  /* course events on the calendar */
   --ok: #2f6b3a;
   --warn: #9a6512;
   --err: #b3261e;
@@ -391,10 +392,18 @@ a.tag:hover { color: var(--paper); background: var(--ink); }
 .layer { display: inline-flex; gap: 8px; align-items: center; font-weight: 500; cursor: pointer; }
 .layer input { width: 18px; height: 18px; }
 .layer-campus input  { accent-color: var(--teal); }
+.layer-course input  { accent-color: var(--plum); }
 .layer-classes input { accent-color: var(--accent); }
 .layer::after { content: ""; width: 22px; height: 8px; }
 .layer-campus::after  { background: var(--teal); }
+.layer-course::after  { background: var(--plum); }
 .layer-classes::after { background: var(--accent); }
+.course-events { list-style: none; margin: 0; padding: 0; }
+.course-events li {
+  display: grid; grid-template-columns: 64px 1fr; gap: 16px; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+}
+.slot-course { background: var(--plum); }
 
 .section-head-tight { margin-top: 0; margin-bottom: 4px; }
 .section-head-tight.spaced { margin-top: 32px; }

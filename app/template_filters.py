@@ -32,6 +32,17 @@ def timeago(moment, now=None):
             return f"{plural(seconds // size, unit)} ago"
 
 
+def clock(moment):
+    """12-hour time with AM/PM: time(14, 30) -> "2:30 PM", time(9, 0) -> "9:00 AM".
+
+    Works on a time or a datetime. Built by hand because strftime's "%-I"
+    (no leading zero) doesn't work on Windows.
+    """
+    hour = moment.hour % 12 or 12  # 0 -> 12 AM, 13 -> 1 PM
+    return f"{hour}:{moment.minute:02d} {'AM' if moment.hour < 12 else 'PM'}"
+
+
 def register(app):
     app.add_template_filter(plural, "plural")
     app.add_template_filter(timeago, "timeago")
+    app.add_template_filter(clock, "clock")

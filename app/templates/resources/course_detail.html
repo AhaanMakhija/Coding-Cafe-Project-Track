@@ -28,6 +28,32 @@
   </div>
 
   <div class="section-head">
+    <h2>Calendar</h2>
+    <div class="btn-row">
+      <a class="btn btn-ghost btn-sm" href="{{ url_for('calendar.course_ics', course_id=course.id) }}"
+         title="Import into Google Calendar, Outlook or Apple Calendar">Download .ics</a>
+      {% if can_add %}
+        <a class="btn btn-sm" href="{{ url_for('calendar.new_event', course_id=course.id) }}">Add event</a>
+      {% endif %}
+    </div>
+  </div>
+  {% if upcoming_events %}
+    <ul class="course-events">
+      {% for e in upcoming_events %}
+        <li>
+          <span class="slot-day slot-course">{{ e.start_at.strftime("%d %b") }}</span>
+          <div>
+            <a href="{{ url_for('calendar.event_detail', event_id=e.id) }}"><strong>{{ e.title }}</strong></a>
+            <div class="res-meta">{{ e.start_at.strftime("%a") }} {{ e.start_at | clock }}–{{ e.end_at | clock }}{% if e.location %} · {{ e.location }}{% endif %}</div>
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="filter-note">No upcoming events for {{ course.code }}.{% if can_add %} Add exams, deadlines or study sessions.{% endif %}</p>
+  {% endif %}
+
+  <div class="section-head">
     <h2>Library</h2>
     {% if can_add %}
       <a class="btn btn-sm" href="{{ url_for('resources.new_resource', course_id=course.id) }}">Add resource</a>

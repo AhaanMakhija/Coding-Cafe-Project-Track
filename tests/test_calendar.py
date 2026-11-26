@@ -1,4 +1,4 @@
-"""Week 5 tests: campus events, weekly classes and the FullCalendar JSON feeds."""
+"""Tests for campus events, weekly classes and the FullCalendar JSON feeds."""
 
 from datetime import datetime, time
 
@@ -45,8 +45,9 @@ def make_slot(user, course, weekday=0, start=time(10), end=time(11, 30), room="2
     return slot
 
 
-EVENT_FORM = {"title": "Career fair", "start_at": "2026-11-12T14:00", "end_at": "2026-11-12T17:30",
-              "location": "Atrium", "description": "Bring your CV.\nAll years welcome."}
+# course_id 0 = campus-wide. Times come from the 15-minute AM/PM dropdown as "HH:MM".
+EVENT_FORM = {"title": "Career fair", "course_id": 0, "day": "2026-11-12", "start_time": "14:00",
+              "end_time": "17:30", "location": "Atrium", "description": "Bring your CV.\nAll years welcome."}
 
 
 # --- Small helpers -------------------------------------------------------------------
@@ -77,7 +78,7 @@ def test_calendar_page_loads(client, student):
     page = client.get("/calendar/").data
     assert b'id="calendar"' in page
     assert b"/calendar/api/events" in page
-    assert b"New campus event" not in page  # students don't see staff tools
+    assert b"Add an event" in page  # enrolled students can add course events
 
 
 # --- Campus events ------------------------------------------------------------------------
@@ -97,23 +98,26 @@ def test_staff_creates_event(client, staff):
 def test_student_cannot_manage_events(client, student, staff):
     event = make_event(staff)
     log_in(client, student)
-    assert client.post("/calendar/events/new", data=EVENT_FORM).status_code == 403
+    # "Campus-wide" isn't in a student's dropdown, so the form rejects it.
+    response = client.post("/calendar/events/new", data=EVENT_FORM)
+    assert b"Not a valid choice" in response.data
+    assert b"Campus-wide" not in client.get("/calendar/events/new").data
     assert client.post(f"/calendar/events/{event.id}/edit", data=EVENT_FORM).status_code == 403
     assert client.post(f"/calendar/events/{event.id}/delete").status_code == 403
     assert client.get(f"/calendar/events/{event.id}").status_code == 200  # can still view
 
 
-@pytest.mark.parametrize("end", ["2026-11-12T13:00", "2026-11-12T14:00"])
+@pytest.mark.parametrize("end", ["13:00", "14:00"])
 def test_event_must_end_after_start(client, staff, end):
     log_in(client, staff)
-    response = client.post("/calendar/events/new", data={**EVENT_FORM, "end_at": end})
+    response = client.post("/calendar/events/new", data={**EVENT_FORM, "end_time": end})
     assert b"must end after it starts" in response.data
     assert db.session.query(Event).count() == 0
 
 
 def test_event_rejects_bad_date(client, staff):
     log_in(client, staff)
-    response = client.post("/calendar/events/new", data={**EVENT_FORM, "start_at": "soon"})
+    response = client.post("/calendar/events/new", data={**EVENT_FORM, "day": "soon"})
     assert response.status_code == 200
     assert db.session.query(Event).count() == 0
 
@@ -244,4 +248,4 @@ def test_calendar_page_lists_my_classes(client, student, course):
     make_slot(student, course, weekday=4, start=time(14), end=time(15))
     log_in(client, student)
     page = client.get("/calendar/").data
-    assert b"Fri" in page and b"14:00" in page
+    assert b"Fri" in page and b"2:00 PM" in page
