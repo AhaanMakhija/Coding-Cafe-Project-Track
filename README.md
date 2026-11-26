@@ -3,7 +3,7 @@
 **Organized Resources, Boards, Info & Timetable**: one place for Plaksha students to find course material, discuss it, and see campus events alongside their own classes.
 
 > Explorer Track project for Coding Café (FM102), 2026, built by Ahaan Makhija.
-> Status: **Feature complete** (accounts, library, calendar, boards). Feature freeze from Week 6: the rest of the term is testing, polish and docs.
+> Status: **Complete and polished.** All four modules built, 253 tests at 99% coverage, demo data ready. Features frozen since Week 6.
 
 ---
 
@@ -66,6 +66,18 @@ flask --app app make-staff you@example.com
 
 This is a terminal command on purpose: only someone with access to the server can promote an account, so there is no web page a student could use to make themselves staff.
 
+### Loading demo data
+
+To try ORBIT without typing everything in, fill an empty database with sample courses, files, links, campus events, a weekly timetable and board threads:
+
+```bash
+flask --app app seed-demo
+```
+
+It prints five demo accounts (three students, two staff) and one shared password. Log in as `riya@orbit-demo.edu` to see a student with a full timetable, or `meera@orbit-demo.edu` for staff. Dates are worked out from today, so events are always coming up and posts are always recent.
+
+The command refuses to run on a database that already has accounts. `--reset` replaces everything after asking for confirmation, and `--password` sets the password instead of generating a random one.
+
 ### Configuration
 
 Settings live in [`config.py`](config.py). For anything other than local development, set these environment variables:
@@ -81,7 +93,15 @@ Settings live in [`config.py`](config.py). For anything other than local develop
 pytest -q
 ```
 
-226 tests cover models, every route, permissions (logged out, student, staff), bad input and the upload safety rules. Tests use an in-memory database and a temporary upload folder, so they never touch your real data.
+253 tests cover the models, every route, permissions (logged out, student, staff), bad input, the upload safety rules, error pages and the demo command. Tests use an in-memory database and a temporary upload folder, so they never touch your real data.
+
+To see which lines the tests run:
+
+```bash
+pytest -q --cov=app --cov-report=term-missing
+```
+
+Coverage is 99%. The only lines not run are the `__repr__` methods used when debugging. Failure paths are tested on purpose, for example a database save that fails after a file was written, to check the file is cleaned up.
 
 ## Tech stack
 
@@ -133,8 +153,10 @@ Browser (Jinja pages + FullCalendar)
 
 ```
 app/
-  __init__.py        create_app(): config, extensions, Blueprints, error pages
+  __init__.py        create_app(): config, extensions, Blueprints, security headers
   extensions.py      db, login_manager, csrf
+  errors.py          friendly 400/403/404/405/413/500 pages
+  demo.py            `flask seed-demo` sample data
   models.py          the eight tables
   auth/              sign up, log in, log out, profile, `flask make-staff`
   resources/         courses, enrollment, uploads and links, search, edit/delete
@@ -167,6 +189,9 @@ requirements.txt
 | Redirect to a fake site after login | `?next=` only accepts paths on ORBIT itself |
 | Account discovery | Wrong email and wrong password give the same login error |
 | Script injection | Jinja escapes all user text; user text is never placed inside JavaScript |
+| Cookie theft and cross-site requests | Login cookies are `HttpOnly` (hidden from JavaScript) and `SameSite=Lax` (not sent with forms from other sites) |
+| Browser guessing file types, clickjacking | `X-Content-Type-Options: nosniff` and `X-Frame-Options: DENY` on every response |
+| Leaking internals | Error pages never show error details; a failed request rolls back its database changes |
 
 ## Roadmap
 
@@ -178,11 +203,21 @@ requirements.txt
 | 4 | 8 | Browse, filter, search, official badge, edit/delete | ✅ Done |
 | 5 | 9 | **Midpoint checkpoint.** Calendar: events + classes | ✅ Done |
 | 6 | 10 | Boards. **Feature freeze** | ✅ Done; features frozen |
-| 7 | 11 | Testing, error handling, upload limits | Ongoing (226 tests) |
-| 8 | 12 | Bug fixes, cleanup, polish, demo seed data | |
-| 9 | 13 | Documentation | |
-| 10 | 14 | Demo prep and buffer | |
+| 7 | 11 | Testing, error handling, upload limits | ✅ Done: 253 tests, 99% coverage, friendly error pages |
+| 8 | 12 | Bug fixes, cleanup, polish, demo seed data | ✅ Done: `flask seed-demo`, security headers, mobile polish |
+| 9 | 13 | Documentation | ✅ README done; design doc in progress |
+| 10 | 14 | Demo prep and buffer | Next |
 | — | 15 | Final presentation | |
+
+## Known limitations
+
+Honest notes on what ORBIT does not do yet, and what would come next:
+
+- **No database migrations.** Tables are created on first run; changing a model means recreating the database. Flask-Migrate would fix this.
+- **File types are checked by extension, not content.** A renamed file passes the check, but it is always served as a download with `nosniff`, so it never runs in the browser.
+- **One time zone.** Events are stored as campus wall-clock times, which suits a single campus.
+- **No pagination.** Long libraries and boards show every item on one page.
+- **No password reset or email.** These would need an email service.
 
 ## Design decisions
 
@@ -194,6 +229,7 @@ requirements.txt
 - **Staff promotion is a terminal command.** An admin web page would need its own permission checks; a command only someone with server access can run is simpler and safer.
 - **Board attachments are library resources.** A file attached to a reply is saved as a `Resource` by the library's upload code, so it gets the same type allow-list, size limit and safe file names, and stays findable in the library. Deleting the reply removes the file; deleting the file from the library keeps the reply.
 - **Relative times on the boards.** "3 hours ago" is worked out from UTC timestamps, so it's right for every viewer without converting time zones.
+- **Demo data is generated, not copied in.** `flask seed-demo` builds data relative to today, so the demo always looks current, and it refuses to overwrite real data unless told to.
 - **Own stylesheet instead of a CSS framework.** A "campus catalogue" look (paper, ink, index cards, rubber stamps) that is specific to ORBIT; colours and fonts are variables at the top of `orbit.css`.
 
 ## Author
