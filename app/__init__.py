@@ -30,6 +30,7 @@ def create_app(config_class=Config):
 
         db.create_all()
 
+    from app.admin import bp as admin_bp
     from app.auth import bp as auth_bp
     from app.calendar import bp as calendar_bp
     from app.forum import bp as forum_bp
@@ -39,6 +40,7 @@ def create_app(config_class=Config):
     app.register_blueprint(resources_bp, url_prefix="/courses")
     app.register_blueprint(calendar_bp, url_prefix="/calendar")
     app.register_blueprint(forum_bp, url_prefix="/board")
+    app.register_blueprint(admin_bp, url_prefix="/admin")
 
     @app.route("/")
     def index():

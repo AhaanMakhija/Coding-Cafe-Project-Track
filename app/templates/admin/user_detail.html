@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% from "_form.html" import field %}
+{% block title %}{{ user.name }} · Admin{% endblock %}
+
+{% block content %}
+  <div class="page-head">
+    <p class="eyebrow"><a href="{{ url_for('admin.users') }}">All accounts</a> <span class="dot">●</span> {{ user.role }}</p>
+    <div class="profile-card">
+      <div class="avatar" aria-hidden="true">{{ user.name[:1] | upper }}</div>
+      <div>
+        <h1 class="profile-name">{{ user.name }}</h1>
+        <p class="profile-email mono">{{ user.email }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-layout">
+    <section>
+      <div class="section-head section-head-tight"><h2>Details</h2></div>
+      <dl class="facts">
+        <dt>Joined</dt><dd>{{ user.created_at.strftime("%d %B %Y") }} ({{ user.created_at | timeago }})</dd>
+        <dt>Courses</dt>
+        <dd>
+          {% for c in user.courses %}
+            <a href="{{ url_for('resources.course_detail', course_id=c.id) }}">{{ c.code }}</a>{% if not loop.last %}, {% endif %}
+          {% else %}None{% endfor %}
+        </dd>
+        {% for label, number in activity.items() %}
+          <dt>{{ label }}</dt><dd>{{ number }}</dd>
+        {% endfor %}
+        <dt>Password</dt><dd>Stored only as a secure hash, so nobody can read it. Set a new one if needed.</dd>
+      </dl>
+    </section>
+
+    <form class="panel" method="post" novalidate>
+      {{ form.hidden_tag() }}
+      <div class="section-head section-head-tight"><h2>Change account</h2></div>
+      {{ field(form.name) }}
+      {{ field(form.email) }}
+      {{ field(form.role, hint="Staff can create courses and post campus events. Admins can also manage accounts.") }}
+      {{ field(form.new_password, hint="Leave empty to keep the current password. At least 8 characters.") }}
+      <div class="btn-row">
+        {{ form.submit(class="btn") }}
+        <a href="{{ url_for('admin.users') }}">Back to all accounts</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

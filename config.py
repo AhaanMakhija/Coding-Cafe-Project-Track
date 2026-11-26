@@ -21,6 +21,10 @@ class Config:
         "DATABASE_URL", "sqlite:///" + os.path.join(BASE_DIR, "instance", "orbit.db")
     )
 
+    # Code that must be typed to sign up as an admin. "admin" is for the local demo
+    # only: anywhere real, set ADMIN_SIGNUP_CODE to a long secret.
+    ADMIN_SIGNUP_CODE = os.environ.get("ADMIN_SIGNUP_CODE", "admin")
+
     # Uploaded files are stored on disk here, never in the database.
     UPLOAD_FOLDER = os.path.join(BASE_DIR, "uploads")
 

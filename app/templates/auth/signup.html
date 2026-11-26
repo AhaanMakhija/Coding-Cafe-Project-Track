@@ -8,12 +8,23 @@
     <div class="split-aside">
       <p class="eyebrow">New account</p>
       <h1>Join the orbit.</h1>
-      <p class="lede">One account for every course's files and discussions. Staff accounts are set up by an administrator.</p>
+      <p class="lede">One account for every course's files and discussions. Staff accounts are set up by an admin.</p>
       {{ orbit_art() }}
     </div>
 
-    <form class="panel" method="post" novalidate>
+    <form class="panel signup-form" method="post" novalidate>
       {{ form.hidden_tag() }}
+      <fieldset class="segmented">
+        <legend class="field-label">{{ form.account_type.label.text }}</legend>
+        <div class="segmented-options">
+          {% for option in form.account_type %}
+            <label>{{ option() }}<span>{{ option.label.text }}</span></label>
+          {% endfor %}
+        </div>
+        {% if form.account_type.errors %}<span class="error">{{ form.account_type.errors | join(" ") }}</span>{% endif %}
+      </fieldset>
+      {# Shown only when "Admin" is picked; see .signup-form:has() in orbit.css. #}
+      {{ field(form.admin_code, extra_class="only-admin", hint="Ask whoever runs ORBIT for the admin code.") }}
       {{ field(form.name) }}
       {{ field(form.email, hint="Use your university email.") }}
       {{ field(form.password, hint="At least 8 characters.") }}

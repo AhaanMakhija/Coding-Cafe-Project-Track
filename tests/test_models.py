@@ -27,12 +27,18 @@ def test_email_is_stored_lower_case(app):
 
 def test_invalid_role_is_rejected(app):
     with pytest.raises(ValueError):
-        make_user(role="admin")
+        make_user(role="superuser")
 
 
 def test_is_staff(app):
     assert make_user(role="staff").is_staff
     assert not make_user(role="student").is_staff
+
+
+def test_admins_have_staff_powers_too(app):
+    admin = make_user(role="admin")
+    assert admin.is_admin and admin.is_staff
+    assert not make_user(role="staff").is_admin
 
 
 def test_duplicate_email_is_rejected(app):

@@ -12,7 +12,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db, login_manager
 
-ROLES = ("student", "staff")
+# admin can do everything staff can, plus manage every account.
+ROLES = ("student", "staff", "admin")
 RESOURCE_KINDS = ("file", "link")
 RESOURCE_TYPES = ("notes", "slides", "past paper", "assignment", "other")
 # Index = ClassSlot.weekday, matching Python's date.weekday() (Monday is 0).
@@ -45,6 +46,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.String(10), nullable=False, default="student")
+    created_at = db.Column(db.DateTime, nullable=False, default=utc_now)
 
     courses = db.relationship("Course", secondary=enrollment, back_populates="students")
     resources = db.relationship("Resource", back_populates="uploader")
@@ -63,7 +65,12 @@ class User(UserMixin, db.Model):
 
     @property
     def is_staff(self):
-        return self.role == "staff"
+        """Staff powers: create courses, post campus events, official uploads. Admins have them too."""
+        return self.role in ("staff", "admin")
+
+    @property
+    def is_admin(self):
+        return self.role == "admin"
 
     def set_password(self, password):
         """Hash and store a password; the plain text is never saved."""

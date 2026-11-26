@@ -24,6 +24,10 @@
              {% if section == "resources" %}aria-current="page"{% endif %}>Courses</a>
           <a href="{{ url_for('calendar.calendar_page') }}"
              {% if section == "calendar" %}aria-current="page"{% endif %}>Calendar</a>
+          {% if current_user.is_admin %}
+            <a href="{{ url_for('admin.users') }}"
+               {% if section == "admin" %}aria-current="page"{% endif %}>Admin</a>
+          {% endif %}
           <a href="{{ url_for('auth.profile') }}"
              {% if request.endpoint == "auth.profile" %}aria-current="page"{% endif %}>{{ current_user.name }}</a>
           <span class="user-chip">{{ current_user.role }}</span>

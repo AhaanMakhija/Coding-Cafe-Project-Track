@@ -30,8 +30,10 @@ def signup():
 
     form = SignupForm()
     if form.validate_on_submit():
-        # Everyone signs up as a student; staff accounts are promoted separately.
-        user = User(name=form.name.data, email=form.email.data, role="student")
+        # Students, or admins who typed the admin code (checked by the form).
+        # Staff accounts are promoted by an admin or with `flask make-staff`.
+        role = "admin" if form.account_type.data == "admin" else "student"
+        user = User(name=form.name.data, email=form.email.data, role=role)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()

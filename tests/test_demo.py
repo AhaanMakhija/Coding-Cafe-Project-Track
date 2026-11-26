@@ -21,7 +21,7 @@ def test_seed_fills_every_table(app):
     def count(model):
         return len(db.session.scalars(db.select(model)).all())
 
-    assert count(User) == 5
+    assert count(User) == 6
     assert count(Course) == 4
     assert count(Event) == 15  # 4 campus-wide + 11 course events
     assert count(ClassSlot) == 5
@@ -83,7 +83,7 @@ def test_reset_asks_first_and_replaces_data(app, make_user):
                                             input="y\n")
     assert accepted.exit_code == 0, accepted.output
     emails = db.session.scalars(db.select(User.email)).all()
-    assert "student@plaksha.edu.in" not in emails and len(emails) == 5
+    assert "student@plaksha.edu.in" not in emails and len(emails) == 6
 
 
 def test_short_password_is_rejected(app):

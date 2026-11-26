@@ -21,6 +21,7 @@
           <label>{{ option() }}<span>{{ option.label.text }}</span></label>
         {% endfor %}
       </div>
+      {% if form.kind.errors %}<span class="error">{{ form.kind.errors | join(" ") }}</span>{% endif %}
     </fieldset>
 
     {# Only one of these two is visible at a time; see .resource-form:has() in orbit.css. #}

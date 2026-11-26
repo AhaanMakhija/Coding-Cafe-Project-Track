@@ -25,6 +25,7 @@ USERS = [
     ("ananya", "Ananya Iyer", "student"),
     ("meera", "Prof. Meera Rao", "staff"),
     ("arjun", "Dr. Arjun Sethi", "staff"),
+    ("admin", "Ada Admin", "admin"),  # sees and manages every account
 ]
 
 COURSES = [

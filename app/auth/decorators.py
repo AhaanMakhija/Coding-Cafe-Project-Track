@@ -23,3 +23,16 @@ def staff_required(view):
         return view(*args, **kwargs)
 
     return wrapped
+
+
+def admin_required(view):
+    """Allow only admins. Visitors are sent to log in; everyone else gets 403 Forbidden."""
+
+    @wraps(view)
+    @login_required
+    def wrapped(*args, **kwargs):
+        if not current_user.is_admin:
+            abort(403)
+        return view(*args, **kwargs)
+
+    return wrapped
