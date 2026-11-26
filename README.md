@@ -3,7 +3,7 @@
 **Organized Resources, Boards, Info & Timetable**: one place for Plaksha students to find course material, discuss it, and see campus events alongside their own classes.
 
 > Explorer Track project for Coding Café (FM102), 2026, built by Ahaan Makhija.
-> Status: **Complete and polished.** All four modules built, 253 tests at 99% coverage, demo data ready. Features frozen since Week 6.
+> Status: **Complete and polished.** All modules built, 320 tests at 99% coverage, demo data ready. After the Week 6 freeze, user testing led to course calendars, AM/PM time pickers, venue clash checks, `.ics` export and an admin role.
 
 ---
 
@@ -15,16 +15,17 @@ Course notes, slides and past papers are scattered across Drive folders, WhatsAp
 
 | Module | What you can do | Status |
 | --- | --- | --- |
-| **Accounts** | Sign up, log in, see your profile. Two roles: student and staff. | ✅ Built |
+| **Accounts** | Sign up, log in, see your profile. Three roles: student, staff and admin. | ✅ Built |
 | **Courses** | Browse the catalogue, join and leave the courses you take. Staff create courses. | ✅ Built |
 | **Resource library** | Upload files (PDF, DOCX, PPTX, PNG, JPG; 10 MB max) or save links (Google Drive, OneDrive, YouTube, any web page). Staff uploads are stamped **official**. Search titles and tags, filter by type and source, edit or delete your own. | ✅ Built |
-| **Calendar** | One calendar that merges campus events (posted by staff) with your own weekly classes. Week, month and list views, with layers you can switch on and off. | ✅ Built |
+| **Calendar** | One calendar that merges campus events (posted by staff), your courses' events (exams, deadlines, study groups, added by anyone in the course) and your own weekly classes. Week, month and list views, with layers you can switch on and off. Times are picked and shown with AM/PM. Two events can't book the same venue at the same time. Download any course's calendar as an `.ics` file for Google Calendar, Outlook or Apple Calendar. | ✅ Built |
 | **Boards** | A discussion board per course. Start threads, reply, and attach files to replies (attachments also appear in the library, tagged `#board`). Staff replies are stamped so answers stand out. Authors and staff can delete. | ✅ Built |
+| **Admin** | Admins see every account with its courses and activity, search and filter them, and change any account's name, email, role or password. | ✅ Built |
 
-### Stretch goals (only if the core is done early)
+### Stretch goals
 
+- ~~Export your calendar as an `.ics` file for Google/Outlook~~ ✅ done, per course
 - Pick files straight from Google Drive using Google sign-in
-- Export your calendar as an `.ics` file for Google/Outlook
 - Email reminders before events
 - Upvotes and reporting on posts
 
@@ -56,15 +57,21 @@ flask --app app run --debug
 
 Open <http://127.0.0.1:5000>. The database (`instance/orbit.db`) and its tables are created automatically on first run.
 
-### Creating a staff account
+### Roles: student, staff and admin
 
-Everyone signs up as a student. To make an account staff (so it can create courses, post campus events and have its uploads marked official), sign up in the browser first, then run:
+| Role | Can do |
+| --- | --- |
+| Student | Join courses, add resources and course events, post on boards, keep a timetable |
+| Staff | Everything a student can, plus create courses, post campus-wide events, and have uploads stamped official |
+| Admin | Everything staff can, plus see and change every account on the **Admin** page |
+
+**Becoming an admin:** on the sign-up page choose **Admin** and type the admin code. The code is the `ADMIN_SIGNUP_CODE` setting, which is `admin` for local demos. Set it to a long secret anywhere real, or anyone could make themselves admin.
+
+**Becoming staff:** an admin changes the account's role on the Admin page. Or, from a terminal on the server:
 
 ```bash
 flask --app app make-staff you@example.com
 ```
-
-This is a terminal command on purpose: only someone with access to the server can promote an account, so there is no web page a student could use to make themselves staff.
 
 ### Loading demo data
 
@@ -74,7 +81,17 @@ To try ORBIT without typing everything in, fill an empty database with sample co
 flask --app app seed-demo
 ```
 
-It prints five demo accounts (three students, two staff) and one shared password. Log in as `riya@orbit-demo.edu` to see a student with a full timetable, or `meera@orbit-demo.edu` for staff. Dates are worked out from today, so events are always coming up and posts are always recent.
+It prints six demo accounts (three students, two staff, one admin) and one shared password:
+
+| Log in as | To see |
+| --- | --- |
+| `riya@orbit-demo.edu` | A student with three courses, a full timetable and board posts |
+| `meera@orbit-demo.edu` | Staff: create courses, post campus-wide events |
+| `admin@orbit-demo.edu` | Admin: the Admin page with every account |
+
+Every course has its own sample events (exams, deadlines, office hours, a study group). Dates are worked out from today, so events are always coming up and posts are always recent. Log in as two accounts in two different browsers to see one account's changes appear for the other on refresh.
+
+> **Upgrading from an earlier version?** The database layout changed (events can belong to a course; accounts record when they joined). Run `flask --app app seed-demo --reset`, or delete `instance/orbit.db`, so the tables are recreated.
 
 The command refuses to run on a database that already has accounts. `--reset` replaces everything after asking for confirmation, and `--password` sets the password instead of generating a random one.
 
@@ -86,6 +103,7 @@ Settings live in [`config.py`](config.py). For anything other than local develop
 | --- | --- | --- |
 | `SECRET_KEY` | Signs login cookies and CSRF tokens | A development-only value |
 | `DATABASE_URL` | Database location (any SQLAlchemy URL) | SQLite file at `instance/orbit.db` |
+| `ADMIN_SIGNUP_CODE` | Code needed to sign up as an admin | `admin` (demo only) |
 
 ### Running the tests
 
@@ -93,7 +111,7 @@ Settings live in [`config.py`](config.py). For anything other than local develop
 pytest -q
 ```
 
-253 tests cover the models, every route, permissions (logged out, student, staff), bad input, the upload safety rules, error pages and the demo command. Tests use an in-memory database and a temporary upload folder, so they never touch your real data.
+320 tests cover the models, every route, permissions (logged out, student, staff, admin), bad input, the upload safety rules, venue clashes, the `.ics` format, error pages and the demo command. Tests use an in-memory database and a temporary upload folder, so they never touch your real data.
 
 To see which lines the tests run:
 
@@ -122,9 +140,9 @@ Browser (Jinja pages + FullCalendar)
         │  HTTP requests
         ▼
 ┌───────────────── Flask app: create_app() ─────────────────┐
-│  auth/          resources/         calendar/     forum/   │   one Blueprint per feature
-│  /auth/...      /courses/...       /calendar/... /board/  │
-└──────────────────────────┬────────────────────────────────┘
+│  auth/        resources/     calendar/     forum/    admin/   │  one Blueprint
+│  /auth/...    /courses/...   /calendar/... /board/   /admin/  │  per feature
+└──────────────────────────────┬────────────────────────────────┘
              SQLAlchemy    │   saved files
              ┌─────────────┴─────────────┐
              ▼                           ▼
@@ -140,11 +158,11 @@ Browser (Jinja pages + FullCalendar)
 
 | Table | Key fields | Rules enforced by the database |
 | --- | --- | --- |
-| `User` | name, email, password_hash, role | Email unique (stored lower-case); role is student or staff |
+| `User` | name, email, password_hash, role, created_at | Email unique (stored lower-case); role is student, staff or admin |
 | `Course` | code, name, term | Code unique per term |
 | `enrollment` | user_id, course_id | Many-to-many link between users and courses |
 | `Resource` | title, kind, file_path *or* url, type, tags, is_official | Exactly one of file_path / url, matching kind |
-| `Event` | title, start_at, end_at, location, description | Ends after it starts |
+| `Event` | title, start_at, end_at, location, description, course_id (empty = campus-wide) | Ends after it starts |
 | `ClassSlot` | weekday (0 = Monday), start_time, end_time, room | Weekday 0–6; ends after it starts |
 | `Thread` | course_id, author_id, title, body | |
 | `Post` | thread_id, author_id, body, attachment_resource_id | Attachment is a `Resource`, reusing the upload code |
@@ -163,9 +181,12 @@ app/
     storage.py         safe file saving (allow-list, random names)
     queries.py         search and filter logic
     links.py           "Google Drive", "YouTube"... labels for saved links
-  calendar/          campus events, weekly classes, JSON feeds
+  calendar/          campus and course events, weekly classes, JSON feeds
     feeds.py           converts events/classes to FullCalendar's format
+    venues.py          the "one event per venue at a time" rule
+    ics.py             builds .ics calendar files
   forum/             course boards: threads, replies, attachments
+  admin/             all accounts, details and editing (admins only)
   permissions.py     who may post, edit and delete (shared by library and boards)
   template_filters.py  "3 files", "3 hours ago" helpers for templates
   templates/         Jinja pages, one folder per Blueprint
@@ -183,7 +204,9 @@ requirements.txt
 | --- | --- |
 | Stolen passwords | Only salted hashes are stored (Werkzeug) |
 | Forged form submissions | CSRF token on every form; logout, join, leave and delete are POST-only |
-| Students acting as staff | Staff role only via `flask make-staff`; staff pages return 403 for students |
+| Students acting as staff or admin | Sign-up only creates students, or admins who know the admin code (compared in constant time); roles change only on the Admin page or with `flask make-staff`; staff and admin pages return 403 to everyone else |
+| Locking everyone out | The last admin can't be demoted |
+| Admins reading passwords | Impossible: only hashes are stored. Admins can set a new password, never see one |
 | Dangerous uploads | Allow-list of file types, 10 MB limit, random stored names (no `../` tricks or overwrites), always served as downloads |
 | Malicious links | Only `http://` and `https://` links are accepted, so `javascript:` links are rejected |
 | Redirect to a fake site after login | `?next=` only accepts paths on ORBIT itself |
@@ -202,11 +225,11 @@ requirements.txt
 | 3 | 7 | Courses, upload and save links (first prototype) | ✅ Done |
 | 4 | 8 | Browse, filter, search, official badge, edit/delete | ✅ Done |
 | 5 | 9 | **Midpoint checkpoint.** Calendar: events + classes | ✅ Done |
-| 6 | 10 | Boards. **Feature freeze** | ✅ Done; features frozen |
-| 7 | 11 | Testing, error handling, upload limits | ✅ Done: 253 tests, 99% coverage, friendly error pages |
+| 6 | 10 | Boards. **Feature freeze** | ✅ Done |
+| 7 | 11 | Testing, error handling, upload limits | ✅ Done: 99% coverage, friendly error pages |
 | 8 | 12 | Bug fixes, cleanup, polish, demo seed data | ✅ Done: `flask seed-demo`, security headers, mobile polish |
 | 9 | 13 | Documentation | ✅ README done; design doc in progress |
-| 10 | 14 | Demo prep and buffer | Next |
+| 10 | 14 | Demo prep and buffer. Buffer used for changes from user testing: course calendars, AM/PM times, venue clashes, `.ics` export, admin role | ✅ Changes done (320 tests); demo rehearsal next |
 | — | 15 | Final presentation | |
 
 ## Known limitations
@@ -215,7 +238,9 @@ Honest notes on what ORBIT does not do yet, and what would come next:
 
 - **No database migrations.** Tables are created on first run; changing a model means recreating the database. Flask-Migrate would fix this.
 - **File types are checked by extension, not content.** A renamed file passes the check, but it is always served as a download with `nosniff`, so it never runs in the browser.
-- **One time zone.** Events are stored as campus wall-clock times, which suits a single campus.
+- **One time zone.** Events are stored as campus wall-clock times, which suits a single campus. `.ics` files use the same "floating" local times.
+- **Events fit within one day.** The form has one date with a start and end time; multi-day events aren't supported.
+- **Weekly classes don't block venues.** Many students list the same lecture in the same room, so only one-off events take part in the clash check.
 - **No pagination.** Long libraries and boards show every item on one page.
 - **No password reset or email.** These would need an email service.
 
@@ -229,6 +254,10 @@ Honest notes on what ORBIT does not do yet, and what would come next:
 - **Staff promotion is a terminal command.** An admin web page would need its own permission checks; a command only someone with server access can run is simpler and safer.
 - **Board attachments are library resources.** A file attached to a reply is saved as a `Resource` by the library's upload code, so it gets the same type allow-list, size limit and safe file names, and stays findable in the library. Deleting the reply removes the file; deleting the file from the library keeps the reply.
 - **Relative times on the boards.** "3 hours ago" is worked out from UTC timestamps, so it's right for every viewer without converting time zones.
+- **Times picked from a dropdown, not the browser's time box.** `<input type="time">` looks different on every computer, and some show 24-hour time with no AM/PM, which made people save 2 AM when they meant 2 PM. A list of 15-minute slots labelled "2:30 PM" reads the same everywhere.
+- **Venue clashes are checked against the whole database.** The rule lives in `calendar/venues.py` and runs in the form, so it applies to every account and to edits as well as new events. Two events overlap when each starts before the other ends, so back-to-back bookings are allowed.
+- **`.ics` written by hand.** The iCalendar format is plain text; ORBIT needs only a handful of its rules (escaping, line folding, weekly repeats), so a small module is easier to explain than a library.
+- **Admin code from config.** It defaults to `admin` for demos, but a real deployment sets `ADMIN_SIGNUP_CODE` to a secret, so the code in a public repository unlocks nothing.
 - **Demo data is generated, not copied in.** `flask seed-demo` builds data relative to today, so the demo always looks current, and it refuses to overwrite real data unless told to.
 - **Own stylesheet instead of a CSS framework.** A "campus catalogue" look (paper, ink, index cards, rubber stamps) that is specific to ORBIT; colours and fonts are variables at the top of `orbit.css`.
 
