@@ -4,7 +4,7 @@ import os
 
 from flask import Flask, render_template
 
-from app import errors, template_filters
+from app import demo, errors, template_filters
 from app.extensions import csrf, db, login_manager
 from config import Config
 
@@ -52,6 +52,7 @@ def create_app(config_class=Config):
         return {"max_upload_mb": app.config["MAX_CONTENT_LENGTH"] // (1024 * 1024)}
 
     errors.register(app)
+    demo.register(app)  # the `flask seed-demo` command
 
     @app.after_request
     def security_headers(response):
